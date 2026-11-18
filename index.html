@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hanzii Pro — Nền tảng Học Tiếng Trung & Từ Vựng Học Thuật Chuẩn HSK</title>
-  <meta name="description" content="Nền tảng học tiếng Trung web-first: Từ vựng học thuật Hanzii, Flashcards SRS SM-2, Luyện viết chữ Hán bút thuận, Luyện phát âm AI zh-CN, Phòng thi CBT HSK, Cloud & Chạy trên mọi nền tảng web.">
+  <title>tiengtrungdema — Nen Tang Hoc Tieng Trung Noi Bo</title>
+  <meta name="description" content="Ung dung hoc tieng Trung noi bo tiengtrungdema">
   <link rel="icon" type="image/svg+xml" href="icon.svg">
   <link rel="apple-touch-icon" href="icon.svg">
   <link rel="manifest" href="manifest.json">
@@ -13,97 +13,132 @@
 </head>
 <body>
 
-  <!-- TOPBAR -->
+  <!-- ==================== ACCESS GATE LOCK SCREEN ==================== -->
+  <div id="accessGateOverlay" class="access-gate-overlay" style="display: none;">
+    <div class="access-gate-card">
+      <div class="brand-seal kaiti-font" style="margin: 0 auto 16px; width: 56px; height: 56px; font-size: 32px;">漢</div>
+      <h2 style="font-size: 1.5rem; font-weight: 900; margin-bottom: 6px; letter-spacing: -0.02em;">tiengtrungdema</h2>
+      <p style="font-size: 0.88rem; color: var(--ink-muted); margin-bottom: 24px; line-height: 1.5;">
+        Ung dung hoc tap bao mat noi bo.<br>Vui long nhap Ma Truy Cap (Access Key) do quan tri vien cung cap de su dung:
+      </p>
+
+      <form id="accessGateForm">
+        <div class="form-group">
+          <input type="password" id="inputAccessKey" class="form-input" placeholder="Nhap ma truy cap tai day..." required autofocus style="text-align: center; font-size: 1.1rem; letter-spacing: 2px;">
+        </div>
+        <div id="accessGateError" style="display: none; color: var(--danger); font-size: 0.82rem; font-weight: 700; margin-bottom: 14px;">
+          Ma truy cap khong chinh xac. Vui long lien he nguoi quan tri!
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 1rem;">
+          Mo Khoa Ung Dung
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== TOPBAR ==================== -->
   <header class="topbar">
     <div class="topbar-content">
-      <div class="brand-wrapper">
+      <div class="brand-wrapper" id="brandLogoBtn" title="tiengtrungdema">
         <div class="brand-seal kaiti-font">漢</div>
         <div class="brand-info">
-          <h1>
-            HANZII PRO
-            <span class="brand-badge">HỌC THUẬT &amp; HSK</span>
-          </h1>
-          <p>Học Tiếng Trung Toàn Diện • Chuẩn Từ Điển Hanzii.net • Web &amp; Mobile Ready</p>
+          <h1 style="font-size: 1.35rem; font-weight: 900; letter-spacing: -0.02em;">tiengtrungdema</h1>
         </div>
       </div>
 
       <div class="topbar-actions">
+        <!-- NÚT HỒ SƠ NGƯỜI HỌC (CÁ NHÂN HÓA) -->
+        <button type="button" id="btnOpenUserSwitch" class="user-profile-btn" title="Bấm để đổi hồ sơ hoặc xem tiến độ">
+          <div class="user-avatar-circle" id="topbarUserAvatar">👨‍🎓</div>
+          <div class="user-info-text">
+            <div class="user-name-title" id="topbarUserName">Đang tải...</div>
+            <div class="user-sub-title" id="topbarUserTarget">Lộ trình Học thuật</div>
+          </div>
+          <span style="font-size: 0.8rem; color: var(--ink-muted); margin-left: 4px;">🔄</span>
+        </button>
+
         <div class="streak-pill" title="Chuỗi ngày học liên tục">
-          <span>🔥</span>
+          <span>Chuỗi:</span>
           <span id="streakCount">1</span> Ngày
         </div>
         <div class="xp-pill" title="Điểm kinh nghiệm tích lũy">
-          <span>⚡</span>
+          <span>Điểm:</span>
           <span id="xpCount">0</span> XP
         </div>
 
-        <select id="speechRateSelect" class="select-control" aria-label="Tốc độ giọng đọc">
-          <option value="0.75">Tốc độ: 0.75x</option>
-          <option value="0.92" selected>Tốc độ: 0.92x</option>
-          <option value="1.15">Tốc độ: 1.15x</option>
-        </select>
+        <button type="button" id="btnLockApp" class="btn btn-secondary btn-sm" title="Khóa ứng dụng bảo mật">
+          Khóa App
+        </button>
 
         <button type="button" id="btnToggleTheme" class="btn btn-secondary btn-sm" title="Chuyển chế độ Sáng / Tối">
-          🌓 Giao diện
-        </button>
-        <button type="button" id="btnInstallApp" class="btn btn-secondary btn-sm" style="display: none;" title="Cài đặt Hanzii Pro lên thiết bị">
-          📲 Cài App
+          Giao diện
         </button>
       </div>
     </div>
   </header>
 
-  <!-- NAVIGATION TABS -->
+  <!-- ==================== NAVIGATION TABS ==================== -->
   <nav class="nav-tabs-wrapper">
     <div class="nav-tabs" role="tablist">
-      <button type="button" class="tab-btn active" data-tab="tabVocab" role="tab" aria-selected="true">
-        📖 Từ Điển &amp; Học Thuật
+      <button type="button" class="tab-btn active" data-tab="tabRoadmap" role="tab" aria-selected="true">
+        Lộ Trình Của Tôi
+      </button>
+      <button type="button" class="tab-btn" data-tab="tabVocab" role="tab" aria-selected="false">
+        Từ Điển &amp; Sổ Tay
       </button>
       <button type="button" class="tab-btn" data-tab="tabSRS" role="tab" aria-selected="false">
-        🧠 Ôn Tập Flashcard (SM-2)
+        Ôn Tập Flashcards (SM-2)
       </button>
       <button type="button" class="tab-btn" data-tab="tabWriting" role="tab" aria-selected="false">
-        ✍️ Luyện Viết Bút Thuận
+        Luyện Viết Bút Thuận
       </button>
       <button type="button" class="tab-btn" data-tab="tabSpeech" role="tab" aria-selected="false">
-        🎙️ Phát Âm &amp; Giọng Nói
+        Phát Âm AI
       </button>
       <button type="button" class="tab-btn" data-tab="tabExam" role="tab" aria-selected="false">
-        🎯 Phòng Thi HSK (CBT)
+        Phòng Thi CBT HSK
       </button>
-      <button type="button" class="tab-btn" data-tab="tabGamification" role="tab" aria-selected="false">
-        🏆 Tiến Độ &amp; Sao Lưu
+      <button type="button" class="tab-btn" data-tab="tabProfile" role="tab" aria-selected="false">
+        Hồ Sơ &amp; Bảo Mật
       </button>
     </div>
   </nav>
 
-  <!-- MAIN APP CONTAINER -->
-  <main class="app-container">
+  <!-- ==================== MAIN CONTENT CONTAINER ==================== -->
+  <main class="app-container" id="mainAppContent">
 
-    <!-- ==================== TAB 1: TỪ ĐIỂN & TỪ VỰNG HỌC THUẬT ==================== -->
-    <section id="tabVocab" class="tab-pane active" role="tabpanel">
-      <div class="hero-banner">
-        <div class="hero-text">
-          <h2>Kho Từ Vựng Học Thuật &amp; Nghiên Cứu Chuẩn Hanzii</h2>
-          <p>
-            Tra cứu từ điển chuyên sâu, đầy đủ Bính âm (Pinyin), Âm Hán Việt tương đương, Giải nghĩa, Phân tích Bộ thủ (Radicals), Chiết tự ghi nhớ và Câu ví dụ học thuật thực tế.
+    <!-- ==================== TAB 1: LỘ TRÌNH CÁ NHÂN HÓA ==================== -->
+    <section id="tabRoadmap" class="tab-pane active" role="tabpanel">
+      <div class="roadmap-hero">
+        <div>
+          <div class="roadmap-title">
+            <span id="roadmapGreetingAvatar">👨‍🎓</span>
+            <span id="roadmapGreetingName">Lộ Trình Học Của Bạn</span>
+          </div>
+          <p class="roadmap-desc" id="roadmapTargetDesc">
+            Lộ trình học tập được thiết kế riêng biệt dựa trên mục tiêu học tập cá nhân. Hoàn thành các bài học, luyện viết và đề thi để tích lũy XP và mở khóa các chặng học thuật chuyên sâu.
           </p>
         </div>
-        <div class="hero-actions">
-          <button type="button" id="btnStartSRSFromVocab" class="btn btn-primary">
-            🚀 Bắt đầu Học Thẻ SRS Ngay
+        <div>
+          <button type="button" class="btn btn-primary" id="btnQuickReviewFromRoadmap">
+            Bắt Đầu Ôn Tập Ngay (+10 XP)
           </button>
         </div>
       </div>
 
-      <!-- BỘ LỌC TÌM KIẾM -->
+      <div class="roadmap-stages-wrapper" id="roadmapStagesList"></div>
+    </section>
+
+    <!-- ==================== TAB 2: TỪ ĐIỂN & SỔ TAY ==================== -->
+    <section id="tabVocab" class="tab-pane" role="tabpanel">
       <div class="filter-bar">
         <div class="search-input-wrapper">
           <span class="search-icon">🔍</span>
-          <input type="text" id="vocabSearchInput" class="search-input" placeholder="Tìm theo chữ Hán, Pinyin, Âm Hán Việt hoặc nghĩa tiếng Việt...">
+          <input type="text" id="vocabSearchInput" class="search-input" placeholder="Tìm theo chữ Hán, Bính âm Pinyin, Âm Hán Việt hoặc nghĩa tiếng Việt...">
         </div>
         <select id="levelFilterSelect" class="select-control">
           <option value="all">Tất cả cấp độ</option>
+          <option value="notebook">Sổ tay từ vựng của tôi</option>
           <option value="academic">Từ vựng Học thuật Chuyên ngành</option>
           <option value="hsk1-3">HSK 1 - 3 (Cơ bản)</option>
           <option value="hsk4-5">HSK 4 - 5 (Trung - Cao cấp)</option>
@@ -119,14 +154,12 @@
         </select>
       </div>
 
-      <!-- DANH SÁCH THẺ TỪ VỰNG -->
       <div id="vocabGrid" class="vocab-grid"></div>
     </section>
 
-    <!-- ==================== TAB 2: FLASHCARD SRS SM-2 ==================== -->
+    <!-- ==================== TAB 3: FLASHCARDS SRS SM-2 ==================== -->
     <section id="tabSRS" class="tab-pane" role="tabpanel">
       <div class="srs-container">
-        <!-- BẢNG THỐNG KÊ SRS -->
         <div class="srs-stats-bar">
           <div class="stat-item">
             <div class="stat-val" id="srsStatTotal">0</div>
@@ -149,29 +182,27 @@
         <!-- 3D FLIP FLASHCARD -->
         <div id="flashcardWrap" class="flashcard-3d-wrap" title="Bấm vào thẻ để lật mặt trước / mặt sau">
           <div class="flashcard-inner">
-            <!-- MẶT TRƯỚC -->
             <div class="card-front">
               <span class="badge-tag badge-academic" id="fcFrontLevel">Học thuật</span>
               <div class="fc-big-hanzi hanzi-font" id="fcFrontHanzi">研究</div>
-              <div class="hanviet-pill" id="fcFrontHanViet" style="font-size: 1.1rem; padding: 4px 12px;">Nghiên Cứu</div>
-              <div style="margin-top: 24px; font-size: 0.82rem; color: var(--ink-muted);">
-                💡 Bấm vào thẻ để lật xem Pinyin, Nghĩa &amp; Chiết tự
+              <div class="hanviet-pill" id="fcFrontHanViet" style="font-size: 1.15rem; padding: 4px 14px;">Nghiên Cứu</div>
+              <div style="margin-top: 24px; font-size: 0.85rem; color: var(--ink-muted);">
+                Bấm vào thẻ để lật xem Pinyin, Nghĩa, Chiết tự &amp; Ví dụ
               </div>
             </div>
 
-            <!-- MẶT SAU -->
             <div class="card-back">
               <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; margin-bottom: 8px;">
                 <div class="pinyin-line" style="font-size: 1.4rem;">
                   <span id="fcBackPinyin">yánjiū</span>
                   <button type="button" class="btn btn-secondary btn-sm" id="btnSpeakCard" title="Phát âm tiếng Trung">
-                    🔊 Nghe
+                    Nghe Phát Âm
                   </button>
                 </div>
                 <span class="hanviet-pill" id="fcBackHanViet">Nghiên Cứu</span>
               </div>
 
-              <div style="font-size: 1rem; font-weight: 600; color: var(--ink); margin-bottom: 12px;" id="fcBackMeaning">
+              <div style="font-size: 1.05rem; font-weight: 700; color: var(--ink); margin-bottom: 12px;" id="fcBackMeaning">
                 Nghiên cứu, tìm hiểu sâu sắc về đề tài khoa học.
               </div>
 
@@ -189,32 +220,30 @@
           </div>
         </div>
 
-        <!-- CÁC NÚT ĐÁNH GIÁ SRS SM-2 -->
         <div class="srs-buttons-bar">
           <button type="button" class="btn btn-srs-again" data-rating="0">
-            ❌ Quên (1 ngày)
+            Quên (1 ngày)
           </button>
           <button type="button" class="btn btn-srs-hard" data-rating="1">
-            ⚠️ Khó (Nhớ mang máng)
+            Khó (Nhớ mang máng)
           </button>
           <button type="button" class="btn btn-srs-good" data-rating="2">
-            👍 Tốt (Nhớ rõ)
+            Tốt (Nhớ rõ)
           </button>
           <button type="button" class="btn btn-srs-easy" data-rating="3">
-            ⭐ Dễ (Rất thuộc)
+            Dễ (Rất thuộc)
           </button>
         </div>
       </div>
     </section>
 
-    <!-- ==================== TAB 3: LUYỆN VIẾT BÚT THUẬN ==================== -->
+    <!-- ==================== TAB 4: LUYỆN VIẾT BÚT THUẬN ==================== -->
     <section id="tabWriting" class="tab-pane" role="tabpanel">
       <div class="writing-layout">
-        <!-- CANVAS TẬP VIẾT -->
         <div class="canvas-panel">
           <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
-            <h3 style="font-size: 1.1rem; font-weight: 700;">Luyện Viết Chữ Hán Trên Lưới Mễ Tự Cách (米字格)</h3>
-            <span class="badge-tag badge-academic" id="canvasCharInfo">Chữ: 研 (9 nét)</span>
+            <h3 style="font-size: 1.15rem; font-weight: 800;">Luyện Viết Chữ Hán Trên Lưới Mễ Tự Cách (米字格)</h3>
+            <span class="badge-tag badge-academic" id="canvasCharInfo">Chữ: 研</span>
           </div>
 
           <div class="canvas-wrapper">
@@ -223,32 +252,31 @@
 
           <div class="canvas-controls">
             <button type="button" id="btnToggleGhost" class="btn btn-secondary btn-sm">
-              👁️ Mẫu Nét Mờ: BẬT
+              Mẫu Nét Mờ: BẬT
             </button>
             <button type="button" id="btnToggleGrid" class="btn btn-secondary btn-sm">
-              📐 Lưới: Mễ tự (米)
+              Lưới: Mễ tự (米)
             </button>
             <button type="button" id="btnUndoStroke" class="btn btn-secondary btn-sm">
-              ↩️ Hoàn Tác Nét
+              Hoàn Tác Nét
             </button>
             <button type="button" id="btnClearCanvas" class="btn btn-secondary btn-sm">
-              🗑️ Xóa Bảng
+              Xóa Bảng
             </button>
             <button type="button" id="btnCompleteWriting" class="btn btn-teal btn-sm">
-              ✅ Hoàn Thành (+20 XP)
+              Hoàn Thành (+20 XP)
             </button>
           </div>
         </div>
 
-        <!-- SIDEBAR CHỌN CHỮ LUYỆN VIẾT -->
         <div class="writing-sidebar">
-          <h4 style="font-weight: 700; margin-bottom: 8px;">Chọn Chữ Hán Cần Luyện:</h4>
-          <p style="font-size: 0.8rem; color: var(--ink-muted);">Bấm vào chữ bất kỳ để nạp vào bảng tập viết:</p>
+          <h4 style="font-weight: 800; margin-bottom: 8px;">Chọn Chữ Hán Cần Luyện:</h4>
+          <p style="font-size: 0.82rem; color: var(--ink-muted);">Bấm vào chữ bất kỳ để nạp vào bảng tập viết:</p>
           <div class="char-selector-list" id="charSelectorList"></div>
 
           <div style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 14px;">
-            <h4 style="font-weight: 700; font-size: 0.9rem; margin-bottom: 6px;">Quy Tắc Bút Thuận Chuẩn:</h4>
-            <ul style="font-size: 0.8rem; color: var(--ink-secondary); padding-left: 18px; line-height: 1.6;">
+            <h4 style="font-weight: 800; font-size: 0.9rem; margin-bottom: 6px;">7 Quy Tắc Bút Thuận Chuẩn:</h4>
+            <ul style="font-size: 0.82rem; color: var(--ink-secondary); padding-left: 18px; line-height: 1.6;">
               <li>Ngang trước sổ sau (VD: 十)</li>
               <li>Phẩy trước mác sau (VD: 八, 人)</li>
               <li>Trên trước dưới sau (VD: 三)</li>
@@ -262,99 +290,67 @@
       </div>
     </section>
 
-    <!-- ==================== TAB 4: PHÁT ÂM & GIỌNG NÓI ==================== -->
+    <!-- ==================== TAB 5: PHÁT ÂM AI ==================== -->
     <section id="tabSpeech" class="tab-pane" role="tabpanel">
       <div class="srs-container">
-        <div class="hero-banner" style="margin-bottom: 24px;">
-          <div class="hero-text">
-            <h2>Phòng Luyện Phát Âm &amp; Giọng Nói Tiếng Trung AI</h2>
-            <p>
-              Tập phát âm chuẩn giọng Bắc Kinh (zh-CN), nghe mẫu âm thanh bản ngữ và dùng AI nhận diện giọng nói để kiểm tra độ chính xác thanh điệu của bạn.
-            </p>
-          </div>
-        </div>
-
-        <div class="question-card" style="text-align: center; padding: 36px 20px;">
-          <div style="font-size: 0.85rem; color: var(--ink-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 8px;">
+        <div class="question-card" style="text-align: center; padding: 40px 24px;">
+          <div style="font-size: 0.85rem; color: var(--ink-muted); text-transform: uppercase; font-weight: 800; margin-bottom: 8px;">
             Từ mục tiêu phát âm:
           </div>
-          <div class="hanzi-main hanzi-font" id="speechTargetHanzi" style="font-size: 3.5rem; margin-bottom: 6px;">研究</div>
-          <div class="pinyin-line" style="justify-content: center; font-size: 1.5rem; margin-bottom: 8px;" id="speechTargetPinyin">yánjiū</div>
-          <div class="hanviet-pill" id="speechTargetHanViet" style="font-size: 1rem; margin-bottom: 24px;">Nghiên Cứu</div>
+          <div class="hanzi-main hanzi-font" id="speechTargetHanzi" style="font-size: 3.8rem; margin-bottom: 6px;">研究</div>
+          <div class="pinyin-line" style="justify-content: center; font-size: 1.6rem; margin-bottom: 8px;" id="speechTargetPinyin">yánjiū</div>
+          <div class="hanviet-pill" id="speechTargetHanViet" style="font-size: 1.05rem; margin-bottom: 28px;">Nghiên Cứu</div>
 
-          <div style="display: flex; justify-content: center; gap: 14px; margin-bottom: 24px;">
+          <div style="display: flex; justify-content: center; gap: 14px; margin-bottom: 24px; flex-wrap: wrap;">
             <button type="button" id="btnPlaySpeechTarget" class="btn btn-secondary">
-              🔊 Nghe Giọng Bản Ngữ (zh-CN)
+              Nghe Giọng Bản Ngữ (zh-CN)
             </button>
             <button type="button" id="btnRecordVoice" class="btn btn-primary">
-              🎙️ Bấm Micro Luyện Đọc
+              Bấm Micro Luyện Đọc
             </button>
             <button type="button" id="btnNextSpeechTarget" class="btn btn-secondary">
-              ⏩ Đổi Từ Khác
+              Đổi Từ Khác
             </button>
           </div>
 
-          <!-- KẾT QUẢ ĐÁNH GIÁ GIỌNG NÓI -->
           <div id="speechResultBox" style="display: none; background-color: var(--surface-alt); border-radius: var(--radius-md); padding: 18px; text-align: left; border: 1px solid var(--border);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-              <span style="font-weight: 700;">Kết Quả Đánh Giá Âm Sắc:</span>
+              <span style="font-weight: 800;">Kết Quả Đánh Giá Âm Sắc:</span>
               <span id="speechMatchBadge" class="badge-tag badge-academic">Khớp 95%</span>
             </div>
-            <div style="font-size: 0.9rem; margin-bottom: 6px;" id="speechTranscriptLine">
-              Máy nghe được: <strong>yánjiū</strong>
+            <div style="font-size: 0.92rem; margin-bottom: 6px;" id="speechTranscriptLine">
+              Máy nghe nhận diện được: <strong>yánjiū</strong>
             </div>
-            <div style="font-size: 0.85rem; color: var(--ink-secondary);" id="speechFeedbackText">
+            <div style="font-size: 0.88rem; color: var(--ink-secondary);" id="speechFeedbackText">
               Phát âm rất chuẩn xác! Ngữ điệu và âm sắc rõ ràng.
-            </div>
-          </div>
-        </div>
-
-        <!-- BẢNG HƯỚNG DẪN 4 THANH ĐIỆU -->
-        <div class="vocab-card" style="margin-top: 20px;">
-          <h4 style="font-weight: 700; margin-bottom: 10px;">Bí Quyết Nắm Bắt 4 Thanh Điệu Tiếng Trung:</h4>
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; font-size: 0.82rem;">
-            <div style="background-color: var(--surface-alt); padding: 10px; border-radius: var(--radius-sm);">
-              <strong>Thanh 1 (mā ˉ):</strong> Âm cao và ngang bằng phẳng (cao độ 55), giữ hơi đều đặn.
-            </div>
-            <div style="background-color: var(--surface-alt); padding: 10px; border-radius: var(--radius-sm);">
-              <strong>Thanh 2 (má ˊ):</strong> Âm vút lên như dấu sắc tiếng Việt (cao độ 35).
-            </div>
-            <div style="background-color: var(--surface-alt); padding: 10px; border-radius: var(--radius-sm);">
-              <strong>Thanh 3 (mǎ ˇ):</strong> Âm xuống trầm rồi nâng nhẹ (cao độ 214), uốn giọng.
-            </div>
-            <div style="background-color: var(--surface-alt); padding: 10px; border-radius: var(--radius-sm);">
-              <strong>Thanh 4 (mà ˋ):</strong> Âm rơi dứt khoát từ cao xuống thấp (cao độ 51), dứt khoát mạnh mẽ.
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- ==================== TAB 5: PHÒNG THI HSK CBT ==================== -->
+    <!-- ==================== TAB 6: PHÒNG THI CBT HSK ==================== -->
     <section id="tabExam" class="tab-pane" role="tabpanel">
       <!-- MÀN HÌNH CHỌN ĐỀ THI -->
       <div id="examSelectView">
-        <div class="hero-banner">
-          <div class="hero-text">
-            <h2>Phòng Thi Trắc Nghiệm Chuẩn HSK Học Thuật (CBT)</h2>
-            <p>
-              Hệ thống phòng thi trực tuyến có đồng hồ đếm ngược, tự động chấm điểm, kiểm tra toàn diện khả năng nhận diện Hán tự, Pinyin, Âm Hán Việt và cấu trúc câu nghiên cứu.
-            </p>
-          </div>
+        <div style="margin-bottom: 24px;">
+          <h2 style="font-size: 1.4rem; font-weight: 900; margin-bottom: 6px;">Phòng Thi Chuẩn HSK Học Thuật (CBT)</h2>
+          <p style="color: var(--ink-muted); font-size: 0.9rem;">
+            Kiểm tra năng lực toàn diện, tự động chấm điểm và cấp giấy chứng nhận có tên học viên.
+          </p>
         </div>
-
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 18px;" id="examSuitesList"></div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px;" id="examSuitesList"></div>
       </div>
 
       <!-- MÀN HÌNH ĐANG LÀM BÀI THI -->
       <div id="examActiveView" style="display: none;">
         <div class="exam-header">
           <div>
-            <h3 id="activeExamTitle" style="font-size: 1.15rem; font-weight: 700;">Đề thi Chuẩn HSK</h3>
+            <h3 id="activeExamTitle" style="font-size: 1.2rem; font-weight: 800;">Đề thi Chuẩn HSK</h3>
             <span class="badge-tag badge-academic" id="activeExamLevel">HSK 4 - 5</span>
           </div>
           <div class="timer-badge">
-            <span>⏱️</span>
+            <span>Thời gian:</span>
             <span id="examTimerDisplay">15:00</span>
           </div>
           <button type="button" id="btnSubmitExam" class="btn btn-primary">
@@ -369,25 +365,29 @@
       <div id="examResultView" style="display: none;">
         <div class="certificate-view">
           <div class="cert-seal kaiti-font">HSK</div>
-          <h2 style="font-size: 1.8rem; font-weight: 800; color: var(--primary); margin-bottom: 8px;">
+          <h2 style="font-size: 1.8rem; font-weight: 900; color: var(--primary); margin-bottom: 8px;">
             GIẤY CHỨNG NHẬN THÀNH TÍCH
           </h2>
           <p style="color: var(--ink-muted); font-size: 0.9rem; margin-bottom: 20px;">
-            BẢNG ĐIỂM KIỂM ĐỊNH NĂNG LỰC TIẾNG TRUNG HỌC THUẬT HANZII PRO
+            BẢNG ĐIỂM KIỂM ĐỊNH NĂNG LỰC TIẾNG TRUNG TIENGTRUNGDEMA
           </p>
 
-          <div style="background-color: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; margin-bottom: 24px; text-align: left;">
+          <div style="background-color: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 22px; margin-bottom: 24px; text-align: left;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+              <span>Học viên:</span>
+              <strong style="color: var(--ink); font-size: 1.1rem;" id="certStudentName">Nguyễn Văn A</strong>
+            </div>
             <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
               <span>Đề thi:</span>
               <strong id="certExamTitle">Đề thi Chuẩn HSK Học Thuật</strong>
             </div>
             <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-              <span>Cấp độ kiểm tra:</span>
+              <span>Cấp độ:</span>
               <strong id="certExamLevel">HSK 4-5</strong>
             </div>
             <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
               <span>Điểm số đạt được:</span>
-              <strong style="color: var(--primary); font-size: 1.2rem;" id="certExamScore">90% (8/8 Câu)</strong>
+              <strong style="color: var(--primary); font-size: 1.25rem;" id="certExamScore">90% (8/8 Câu)</strong>
             </div>
             <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
               <span>Trạng thái:</span>
@@ -395,13 +395,13 @@
             </div>
             <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--ink-muted);">
               <span>Mã tra cứu bảo mật:</span>
-              <code id="certExamHash">HSK-9X82A-18F90</code>
+              <code id="certExamHash">DEM-9X82A-18F90</code>
             </div>
           </div>
 
-          <div style="display: flex; justify-content: center; gap: 12px;">
+          <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
             <button type="button" class="btn btn-secondary" onclick="window.print()">
-              🖨️ In Chứng Nhận / Lưu PDF
+              In Chứng Nhận / Lưu PDF
             </button>
             <button type="button" id="btnBackToExams" class="btn btn-primary">
               Trở Về Danh Sách Đề Thi
@@ -409,60 +409,96 @@
           </div>
         </div>
 
-        <!-- CHI TIẾT ĐÁP ÁN TỪNG CÂU -->
         <div style="max-width: 720px; margin: 30px auto;" id="examReviewContainer"></div>
       </div>
     </section>
 
-    <!-- ==================== TAB 6: TIẾN ĐỘ & SAO LƯU ==================== -->
-    <section id="tabGamification" class="tab-pane" role="tabpanel">
+    <!-- ==================== TAB 7: HỒ SƠ & BẢO MẬT ==================== -->
+    <section id="tabProfile" class="tab-pane" role="tabpanel">
       <div class="writing-layout">
+        <!-- BẢNG ĐIỀU KHIỂN HỌC VIÊN -->
         <div class="canvas-panel" style="align-items: stretch;">
-          <h3 style="font-weight: 800; font-size: 1.2rem; margin-bottom: 16px;">Tiến Độ Học Viên &amp; Cấp Bậc</h3>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h3 style="font-weight: 800; font-size: 1.25rem;">Hồ Sơ &amp; Tiến Độ Học Tập</h3>
+            <button type="button" class="btn btn-secondary btn-sm" id="btnSwitchUserFromProfile">
+              Đổi Người Học
+            </button>
+          </div>
 
-          <!-- LEVEL CARD -->
-          <div style="background-color: var(--surface-alt); border-radius: var(--radius-md); padding: 18px; margin-bottom: 20px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <div style="background-color: var(--surface-alt); border-radius: var(--radius-md); padding: 20px; margin-bottom: 24px;">
+            <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 14px;">
+              <div style="font-size: 2.8rem;" id="profileBigAvatar">👨‍🎓</div>
               <div>
-                <span class="badge-tag badge-academic" id="dashboardLevelBadge">Cấp 1</span>
-                <h4 style="font-size: 1.1rem; font-weight: 800; margin-top: 4px;" id="dashboardLevelTitle">Học Đồng Nhập Môn</h4>
-              </div>
-              <div style="text-align: right;">
-                <div style="font-size: 1.2rem; font-weight: 800; color: var(--primary);" id="dashboardXPVal">0 XP</div>
-                <div style="font-size: 0.75rem; color: var(--ink-muted);" id="dashboardNextLevelVal">Mục tiêu: 100 XP</div>
+                <h4 style="font-size: 1.25rem; font-weight: 900;" id="profileBigName">Nguyễn Văn A</h4>
+                <div style="font-size: 0.85rem; color: var(--ink-muted);" id="profileBigTarget">Mục tiêu: Học thuật Chuyên ngành</div>
+                <div style="font-size: 0.78rem; color: var(--ink-secondary); margin-top: 2px;">Ngày bắt đầu: <span id="profileCreatedAt">19/11/2026</span></div>
               </div>
             </div>
 
-            <!-- THANH TIẾN ĐỘ XP -->
-            <div style="height: 10px; background-color: var(--border-strong); border-radius: var(--radius-full); overflow: hidden; margin-top: 10px;">
-              <div id="dashboardProgressBar" style="height: 100%; width: 0%; background: linear-gradient(90deg, var(--primary), var(--secondary)); transition: width 0.4s ease;"></div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <span class="badge-tag badge-academic" id="profileLevelBadge">Cấp 1: Học Đồng</span>
+              <strong style="color: var(--primary);" id="profileXPVal">50 XP</strong>
+            </div>
+
+            <div style="height: 10px; background-color: var(--border-strong); border-radius: var(--radius-full); overflow: hidden;">
+              <div id="profileProgressBar" style="height: 100%; width: 50%; background: linear-gradient(90deg, var(--primary), var(--secondary)); transition: width 0.4s ease;"></div>
             </div>
           </div>
 
-          <!-- NHIỆM VỤ HẰNG NGÀY -->
-          <h4 style="font-weight: 700; margin-bottom: 8px;">Nhiệm Vụ Hằng Ngày:</h4>
-          <div class="quest-list" id="dailyQuestsList"></div>
+          <!-- LỊCH SỬ THI CBT -->
+          <h4 style="font-weight: 800; font-size: 1.05rem; margin-bottom: 10px;">Lịch Sử Thi &amp; Điểm Số:</h4>
+          <div style="background-color: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); overflow-x: auto; margin-bottom: 24px;">
+            <table class="exam-history-table">
+              <thead>
+                <tr>
+                  <th>Ngày Thi</th>
+                  <th>Tên Đề Thi</th>
+                  <th>Điểm Số</th>
+                  <th>Kết Quả</th>
+                </tr>
+              </thead>
+              <tbody id="profileExamHistoryTableBody">
+                <tr><td colspan="4" style="text-align: center; color: var(--ink-muted);">Chưa có lịch sử thi nào.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- NHẬT KÝ HOẠT ĐỘNG GẦN ĐÂY -->
+          <h4 style="font-weight: 800; font-size: 1.05rem; margin-bottom: 10px;">Nhật Ký Học Tập Chi Tiết:</h4>
+          <div style="background-color: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); max-height: 280px; overflow-y: auto;" id="profileActivityLogsList">
+            <div class="activity-log-item" style="color: var(--ink-muted); text-align: center;">Đang tải nhật ký...</div>
+          </div>
         </div>
 
-        <!-- BẢNG HUY HIỆU & SAO LƯU -->
+        <!-- CÀI ĐẶT & BẢO MẬT HỒ SƠ -->
         <div class="writing-sidebar">
-          <h3 style="font-weight: 800; font-size: 1.1rem; margin-bottom: 12px;">Huy Hiệu &amp; Thành Tựu</h3>
-          <div class="badges-grid" id="badgesGrid" style="grid-template-columns: 1fr;"></div>
-
-          <div style="margin-top: 24px; border-top: 1px solid var(--border); padding-top: 16px;">
-            <h4 style="font-weight: 700; margin-bottom: 8px;">Sao Lưu &amp; Khôi Phục Dữ Liệu:</h4>
-            <p style="font-size: 0.8rem; color: var(--ink-muted); margin-bottom: 12px;">
-              Dữ liệu của bạn được lưu an toàn trên trình duyệt. Bạn có thể xuất file JSON để đồng bộ sang điện thoại hoặc máy khác:
-            </p>
-            <div style="display: flex; gap: 8px; flex-direction: column;">
-              <button type="button" id="btnExportBackup" class="btn btn-secondary btn-sm">
-                💾 Xuất Dữ Liệu (Backup JSON)
+          <h3 style="font-weight: 800; font-size: 1.15rem; margin-bottom: 14px;">Bảo Mật &amp; Quản Lý</h3>
+          
+          <div style="background: var(--surface-alt); border-radius: var(--radius-md); padding: 14px; margin-bottom: 16px;">
+            <div style="font-size: 0.85rem; font-weight: 800; margin-bottom: 4px;">Mã Truy Cập Hiện Tại:</div>
+            <div style="font-size: 0.8rem; color: var(--ink-muted); margin-bottom: 8px;">Cung cấp mã này cho người bạn muốn cho phép học:</div>
+            <div style="display: flex; gap: 6px; align-items: center;">
+              <input type="text" id="displayCurrentAccessKey" class="form-input" readonly style="font-weight: 800; color: var(--primary); padding: 6px 10px; font-size: 0.9rem;">
+              <button type="button" id="btnChangeAccessKey" class="btn btn-secondary btn-sm" title="Đổi mã mới">
+                Đổi Mã
               </button>
-              <label class="btn btn-secondary btn-sm" style="margin: 0; cursor: pointer; text-align: center;">
-                📥 Nhập Dữ Liệu (Restore)
-                <input type="file" id="btnImportBackupInput" accept=".json" style="display: none;">
-              </label>
             </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <button type="button" id="btnCreateNewUserFromSidebar" class="btn btn-primary btn-sm">
+              Tạo Hồ Sơ Học Viên Mới
+            </button>
+            <button type="button" id="btnLockAppFromProfile" class="btn btn-secondary btn-sm" style="color: var(--danger);">
+              Khóa Ứng Dụng Ngay
+            </button>
+            <button type="button" id="btnExportUserBackup" class="btn btn-secondary btn-sm">
+              Xuất Dữ Liệu Học Tập (JSON)
+            </button>
+            <label class="btn btn-secondary btn-sm" style="margin: 0; cursor: pointer; text-align: center;">
+              Nhập Dữ Liệu Khôi Phục
+              <input type="file" id="btnImportUserBackupInput" accept=".json" style="display: none;">
+            </label>
           </div>
         </div>
       </div>
@@ -470,10 +506,76 @@
 
   </main>
 
+  <!-- ==================== ONBOARDING MODAL (YÊU CẦU TÊN NGƯỜI DÙNG) ==================== -->
+  <div id="onboardingModal" class="modal-overlay" style="display: none;">
+    <div class="modal-card">
+      <div style="text-align: center; margin-bottom: 20px;">
+        <div class="brand-seal kaiti-font" style="margin: 0 auto 12px; width: 50px; height: 50px; font-size: 28px;">漢</div>
+        <h2 style="font-size: 1.45rem; font-weight: 900; margin-bottom: 6px;">Chào Mừng Đến tiengtrungdema</h2>
+        <p style="font-size: 0.88rem; color: var(--ink-muted);">
+          Vui lòng nhập tên của bạn để tạo hồ sơ học tập và lộ trình cá nhân hóa riêng biệt:
+        </p>
+      </div>
+
+      <form id="onboardingForm">
+        <div class="form-group">
+          <label class="form-label" for="inputUserName">Họ và Tên hoặc Biệt danh của bạn:</label>
+          <input type="text" id="inputUserName" class="form-input" placeholder="Ví dụ: Minh Anh, Hoàng Long..." required autofocus>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Chọn Mục Tiêu Học Tập:</label>
+          <select id="inputUserTarget" class="form-input">
+            <option value="academic" selected>Từ vựng Học thuật Chuyên ngành &amp; Nghiên cứu khoa học</option>
+            <option value="hsk1-2">HSK 1 - 2 (Căn bản cho người mới bắt đầu)</option>
+            <option value="hsk3-4">HSK 3 - 4 (Trung cấp &amp; Giao tiếp nâng cao)</option>
+            <option value="hsk5-6">HSK 5 - 6 (Cao cấp &amp; Văn bản báo chí)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Chọn Biểu Tượng Đại Diện (Avatar):</label>
+          <div class="avatar-selector-grid">
+            <button type="button" class="avatar-choice-btn selected" data-avatar="👨‍🎓">👨‍🎓</button>
+            <button type="button" class="avatar-choice-btn" data-avatar="👩‍🎓">👩‍🎓</button>
+            <button type="button" class="avatar-choice-btn" data-avatar="🧑‍🏫">🧑‍🏫</button>
+            <button type="button" class="avatar-choice-btn" data-avatar="🐉">🐉</button>
+            <button type="button" class="avatar-choice-btn" data-avatar="🪷">🪷</button>
+            <button type="button" class="avatar-choice-btn" data-avatar="✍️">✍️</button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 1rem;">
+          Kích Hoạt Lộ Trình Của Tôi
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== USER SWITCHER MODAL ==================== -->
+  <div id="userSwitchModal" class="modal-overlay" style="display: none;">
+    <div class="modal-card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 style="font-size: 1.25rem; font-weight: 800;">Chọn Hồ Sơ Học Viên</h3>
+        <button type="button" class="btn btn-secondary btn-sm" id="btnCloseUserSwitchModal">Đóng</button>
+      </div>
+
+      <p style="font-size: 0.85rem; color: var(--ink-muted); margin-bottom: 14px;">
+        Mỗi người học có lộ trình, lịch sử thi và điểm số riêng biệt:
+      </p>
+
+      <div class="user-switch-list" id="userSwitchModalList"></div>
+
+      <button type="button" id="btnAddNewUserFromModal" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+        Tạo Thêm Hồ Sơ Học Viên Mới
+      </button>
+    </div>
+  </div>
+
   <!-- TOAST CONTAINER -->
   <div id="toastContainer"></div>
 
-  <!-- CORE SCRIPTS -->
+  <!-- CORE CONTROLLER -->
   <script type="module" src="js/app.js"></script>
 
   <!-- SERVICE WORKER REGISTRATION (OFFLINE PWA) -->
@@ -481,9 +583,9 @@
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js').then(reg => {
-          console.log('Hanzii Pro ServiceWorker registered:', reg.scope);
+          console.log('tiengtrungdema ServiceWorker active:', reg.scope);
         }).catch(err => {
-          console.log('Hanzii Pro ServiceWorker registration failed:', err);
+          console.log('tiengtrungdema ServiceWorker error:', err);
         });
       });
     }

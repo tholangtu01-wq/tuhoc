@@ -2,7 +2,7 @@
  * Service Worker for Hanzii Pro (Offline Caching & PWA Support)
  */
 
-const CACHE_NAME = "hanzii-pro-v1";
+const CACHE_NAME = "hanzii-pro-v2";
 const ASSETS_TO_CACHE = [
   "./",
   "./index.html",
@@ -10,11 +10,11 @@ const ASSETS_TO_CACHE = [
   "./js/app.js",
   "./js/data/vocabulary.js",
   "./js/data/exams.js",
+  "./js/modules/userManager.js",
   "./js/modules/srs.js",
   "./js/modules/writingCanvas.js",
   "./js/modules/speechEngine.js",
   "./js/modules/examRoom.js",
-  "./js/modules/gamification.js",
   "./manifest.json",
   "./icon.svg"
 ];
@@ -22,7 +22,7 @@ const ASSETS_TO_CACHE = [
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log("[ServiceWorker] Pre-caching offline assets");
+      console.log("[ServiceWorker] Pre-caching offline assets v2");
       return cache.addAll(ASSETS_TO_CACHE);
     }).then(() => self.skipWaiting())
   );
@@ -61,7 +61,6 @@ self.addEventListener("fetch", (event) => {
         });
         return response;
       }).catch(() => {
-        // Fallback offline
         return caches.match("./index.html");
       });
     })

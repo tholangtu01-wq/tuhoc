@@ -1,7 +1,7 @@
 {
-  "name": "Hanzii Pro — Học Tiếng Trung & Từ Vựng Học Thuật",
-  "short_name": "Hanzii Pro",
-  "description": "Nền tảng học tiếng Trung web-first chuẩn Hanzii.net với Flashcards SRS, Luyện viết chữ Hán, Luyện phát âm AI zh-CN và Phòng thi CBT HSK.",
+  "name": "tiengtrungdema",
+  "short_name": "tiengtrungdema",
+  "description": "Nen tang hoc tieng Trung noi bo tiengtrungdema",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#fafaf9",
