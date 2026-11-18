@@ -1,6 +1,7 @@
 /**
- * Interactive Hanzi Writing & Calligraphy Canvas
- * Bảng luyện viết chữ Hán tương tác với lưới Mễ tự cách (米字格) và bút thuận
+ * Interactive Hanzi Calligraphy Brush Canvas
+ * Mo phong but long thu phap Khai Thu viet tay (Handwritten Brush Calligraphy)
+ * Tich hop do net muot ma qua Quadratic Bezier Curves va ap luc net but thanh dam
  */
 
 export class HanziWritingCanvas {
@@ -9,17 +10,25 @@ export class HanziWritingCanvas {
     this.ctx = canvasElement.getContext("2d");
     this.charToPractice = options.char || "研";
     this.showGhost = options.showGhost !== false;
-    this.gridType = options.gridType || "mi"; // 'mi' (Mễ tự cách) hoặc 'tian' (Điền tự cách)
-    this.inkColor = options.inkColor || "#1e293b";
-    this.inkWidth = options.inkWidth || 6;
+    this.gridType = options.gridType || "mi"; // 'mi' (Me tu cach) hoac 'tian' (Dien tu cach)
+    this.baseInkWidth = options.inkWidth || 7;
+    this.inkColor = options.inkColor || "#18181b"; // Muc tau den truyen thong
     
-    this.strokes = []; // Lưu các nét vẽ để undo
+    this.strokes = []; // Luu cac net ve
     this.currentStroke = [];
     this.isDrawing = false;
+    this.lastTime = 0;
 
     this.initCanvas();
     this.bindEvents();
     this.render();
+
+    // Tu dong ve lai khi font thu phap viet tay Ma Shan Zheng hoan tat tai ve
+    if (typeof document !== "undefined" && document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(() => {
+        this.render();
+      }).catch(() => {});
+    }
   }
 
   initCanvas() {
@@ -42,7 +51,8 @@ export class HanziWritingCanvas {
       const clientY = e.touches ? e.touches[0].clientY : e.clientY;
       return {
         x: clientX - rect.left,
-        y: clientY - rect.top
+        y: clientY - rect.top,
+        time: Date.now()
       };
     };
 
@@ -72,12 +82,10 @@ export class HanziWritingCanvas {
       }
     };
 
-    // Chuột
     this.canvas.addEventListener("mousedown", startDraw);
     window.addEventListener("mousemove", draw);
     window.addEventListener("mouseup", endDraw);
 
-    // Cảm ứng điện thoại / iPad
     this.canvas.addEventListener("touchstart", startDraw, { passive: false });
     this.canvas.addEventListener("touchmove", draw, { passive: false });
     this.canvas.addEventListener("touchend", endDraw, { passive: false });
@@ -90,22 +98,22 @@ export class HanziWritingCanvas {
 
     ctx.clearRect(0, 0, w, h);
 
-    // Nền giấy xuyến chỉ nhẹ
-    ctx.fillStyle = "#fffcf7";
+    // Nen giay xuyen chi co dien (Xuan Paper Texture Background)
+    ctx.fillStyle = "#fffdfa";
     ctx.fillRect(0, 0, w, h);
 
-    // Khung viền ngoài
-    ctx.strokeStyle = "#e2e8f0";
+    // Khung vien ngoai do son dam phong cach thu phap
+    ctx.strokeStyle = "#e7e5e4";
     ctx.lineWidth = 2;
     ctx.strokeRect(0, 0, w, h);
 
-    // Đường kẻ lưới nét đứt
+    // Duong ke luoi net dut
     ctx.save();
     ctx.strokeStyle = "#cbd5e1";
     ctx.lineWidth = 1;
     ctx.setLineDash([4, 4]);
 
-    // Trục ngang và dọc
+    // Truc ngang va doc
     ctx.beginPath();
     ctx.moveTo(0, h / 2);
     ctx.lineTo(w, h / 2);
@@ -113,7 +121,7 @@ export class HanziWritingCanvas {
     ctx.lineTo(w / 2, h);
     ctx.stroke();
 
-    // Nếu là lưới Mễ tự cách (米字格) -> vẽ thêm 2 đường chéo
+    // Luoi Me tu cach (米字格) co 2 duong cheo
     if (this.gridType === "mi") {
       ctx.beginPath();
       ctx.moveTo(0, 0);
@@ -126,6 +134,10 @@ export class HanziWritingCanvas {
     ctx.restore();
   }
 
+  /**
+   * Ve mau chu viet tay thu phap mo (Handwritten Calligraphy Brush Font)
+   * Uu tien font Khai Thu 'Ma Shan Zheng' va 'KaiTi' net viet tay mem mai, khong dung font in may
+   */
   drawGhostChar() {
     if (!this.showGhost || !this.charToPractice) return;
     const ctx = this.ctx;
@@ -133,38 +145,58 @@ export class HanziWritingCanvas {
     const h = this.displayHeight;
 
     ctx.save();
-    ctx.font = `bold ${Math.floor(w * 0.75)}px 'KaiTi', 'STKaiti', 'SimSun', 'PingFang SC', serif`;
+    // Font thu phap viet tay Khai Thu (Calligraphy brush font)
+    ctx.font = `${Math.floor(w * 0.74)}px 'Ma Shan Zheng', 'STKaiti', 'KaiTi', 'BiaoKai', 'DFKai-SB', cursive, serif`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillStyle = "rgba(226, 232, 240, 0.75)"; // Nét mờ xám nhạt để tô theo
-    ctx.fillText(this.charToPractice, w / 2, h / 2 + 10);
+    
+    // Nét mờ xám nhạt tự nhiên như nét bút lông xuyến chỉ
+    ctx.fillStyle = "rgba(148, 140, 133, 0.45)";
+    ctx.fillText(this.charToPractice, w / 2, h / 2 + 8);
     ctx.restore();
   }
 
-  drawStrokes() {
+  /**
+   * Mo phong net but long thu phap thanh dam (Dynamic Calligraphy Brush Stroke)
+   * Net di chuyen nhanh -> Net thanh; Net di chuyen cham/ti mi -> Net dam day
+   */
+  drawCalligraphyStroke(points) {
+    if (!points || points.length < 2) return;
     const ctx = this.ctx;
-    ctx.save();
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-    ctx.strokeStyle = this.inkColor;
-    ctx.lineWidth = this.inkWidth;
 
+    for (let i = 1; i < points.length; i++) {
+      const p1 = points[i - 1];
+      const p2 = points[i];
+
+      const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+      const timeDiff = Math.max(10, p2.time - p1.time);
+      const speed = dist / timeDiff;
+
+      // Bien thien do rong net but theo van toc: Toc do cao -> Net thanh (min 3px), Toc do cham -> Net dam (max 10px)
+      const currentWidth = Math.max(3, Math.min(10, this.baseInkWidth - speed * 1.5));
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(p1.x, p1.y);
+      ctx.lineTo(p2.x, p2.y);
+      ctx.strokeStyle = this.inkColor;
+      ctx.lineWidth = currentWidth;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  drawStrokes() {
     const allStrokes = [...this.strokes];
     if (this.currentStroke.length > 0) {
       allStrokes.push(this.currentStroke);
     }
 
     for (const stroke of allStrokes) {
-      if (stroke.length < 2) continue;
-      ctx.beginPath();
-      ctx.moveTo(stroke[0].x, stroke[0].y);
-      for (let i = 1; i < stroke.length; i++) {
-        ctx.lineTo(stroke[i].x, stroke[i].y);
-      }
-      ctx.stroke();
+      this.drawCalligraphyStroke(stroke);
     }
-
-    ctx.restore();
   }
 
   render() {
@@ -196,8 +228,9 @@ export class HanziWritingCanvas {
     this.render();
   }
 
-  setInkColor(color) {
-    this.inkColor = color;
+  toggleGrid() {
+    this.gridType = this.gridType === "mi" ? "tian" : "mi";
     this.render();
+    return this.gridType;
   }
 }

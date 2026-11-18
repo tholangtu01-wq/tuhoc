@@ -3,13 +3,14 @@
  * Tích hợp hệ thống bảo mật Mã Truy Cập (Access Gate), đa người dùng và lộ trình riêng biệt
  */
 
-import { VOCABULARY_DATA, RADICALS_DATA } from "./data/vocabulary.js";
+import { VOCABULARY_DATA, RADICALS_DATA, HANZI_CHAR_DETAILS } from "./data/vocabulary.js";
 import { EXAM_SUITES } from "./data/exams.js";
 import { UserManager } from "./modules/userManager.js";
 import { SRSEngine } from "./modules/srs.js";
 import { HanziWritingCanvas } from "./modules/writingCanvas.js";
 import { SpeechEngine } from "./modules/speechEngine.js";
 import { ExamRoom } from "./modules/examRoom.js";
+import { ROADMAP_LESSONS, USER_GUIDE_DATA } from "./data/roadmapLessons.js";
 
 const DEFAULT_ACCESS_KEYS = ["tiengtrungdema", "dema2026", "dema888"];
 
@@ -23,6 +24,7 @@ class AppController {
     this.currentCardIndex = 0;
     this.speechTargetIndex = 0;
     this.selectedAvatar = "👨‍🎓";
+    this.currentLessonStage = "stage1";
 
     this.initAccessGate();
     this.initDOM();
@@ -36,6 +38,8 @@ class AppController {
     this.initSpeechTab();
     this.initExamTab();
     this.initProfileTab();
+    this.initLessonRunner();
+    this.initUserGuide();
 
     this.updateUserUI();
   }
@@ -129,6 +133,18 @@ class AppController {
 
     document.getElementById("btnQuickReviewFromRoadmap")?.addEventListener("click", () => {
       this.switchTab("tabSRS");
+    });
+
+    document.getElementById("btnHeroUserGuide")?.addEventListener("click", () => {
+      const modal = document.getElementById("userGuideModal");
+      if (modal) modal.style.display = "flex";
+      this.renderUserGuideContent("roadmap");
+    });
+
+    document.getElementById("btnOpenUserGuide")?.addEventListener("click", () => {
+      const modal = document.getElementById("userGuideModal");
+      if (modal) modal.style.display = "flex";
+      this.renderUserGuideContent("roadmap");
     });
   }
 
@@ -377,7 +393,7 @@ class AppController {
               </div>
             </div>
             ${isUnlocked ? `
-              <button type="button" class="btn btn-primary btn-sm btn-learn-stage" data-tab="${s.targetTab}">
+              <button type="button" class="btn btn-primary btn-sm btn-learn-stage" data-stage="${s.key}">
                 Học Ngay
               </button>
             ` : `
@@ -390,8 +406,8 @@ class AppController {
 
     stagesList.querySelectorAll(".btn-learn-stage").forEach(btn => {
       btn.addEventListener("click", () => {
-        const tab = btn.getAttribute("data-tab");
-        this.switchTab(tab);
+        const stageKey = btn.getAttribute("data-stage");
+        this.openStageLesson(stageKey);
       });
     });
   }
@@ -401,12 +417,19 @@ class AppController {
     const searchInput = document.getElementById("vocabSearchInput");
     const levelSelect = document.getElementById("levelFilterSelect");
     const categorySelect = document.getElementById("categoryFilterSelect");
+    const pills = document.querySelectorAll("#vocabLevelPills .level-pill-btn");
 
     const render = () => {
       const q = (searchInput?.value || "").trim().toLowerCase();
       const level = levelSelect?.value || "all";
       const cat = categorySelect?.value || "all";
       const notebookIds = this.userManager.currentUser?.notebook || [];
+
+      // Đồng bộ trạng thái active của thanh pills
+      pills.forEach(btn => {
+        const pLevel = btn.getAttribute("data-level");
+        btn.classList.toggle("active", pLevel === level);
+      });
 
       const filtered = VOCABULARY_DATA.filter(item => {
         const matchQuery = !q ||
@@ -419,9 +442,12 @@ class AppController {
 
         let matchLevel = true;
         if (level === "notebook") matchLevel = notebookIds.includes(item.id);
-        else if (level === "academic") matchLevel = item.level.includes("Học thuật");
-        else if (level === "hsk1-3") matchLevel = item.level.includes("HSK 1") || item.level.includes("HSK 2") || item.level.includes("HSK 3");
-        else if (level === "hsk4-5") matchLevel = item.level.includes("HSK 4") || item.level.includes("HSK 5");
+        else if (level === "academic") matchLevel = item.level.includes("Học thuật") || item.level.includes("HSK 6");
+        else if (level === "hsk1") matchLevel = item.level.includes("HSK 1");
+        else if (level === "hsk2") matchLevel = item.level.includes("HSK 2");
+        else if (level === "hsk3") matchLevel = item.level.includes("HSK 3");
+        else if (level === "hsk4") matchLevel = item.level.includes("HSK 4");
+        else if (level === "hsk5") matchLevel = item.level.includes("HSK 5");
         else if (level === "hsk6") matchLevel = item.level.includes("HSK 6");
 
         return matchQuery && matchCat && matchLevel;
@@ -430,9 +456,20 @@ class AppController {
       this.renderVocabGrid(filtered);
     };
 
+    pills.forEach(btn => {
+      btn.addEventListener("click", () => {
+        const lvl = btn.getAttribute("data-level");
+        if (levelSelect) levelSelect.value = lvl;
+        render();
+      });
+    });
+
     if (searchInput) searchInput.addEventListener("input", render);
     if (levelSelect) levelSelect.addEventListener("change", render);
     if (categorySelect) categorySelect.addEventListener("change", render);
+
+    render();
+  }
 
     render();
   }
@@ -519,7 +556,11 @@ class AppController {
     grid.querySelectorAll(".btn-speak").forEach(btn => {
       btn.addEventListener("click", () => {
         const text = btn.getAttribute("data-text");
-        this.speech.speak(text);
+        this.speech.speak(
+          text,
+          () => { btn.textContent = "🔊 Đang phát..."; },
+          () => { btn.textContent = "Nghe"; }
+        );
       });
     });
 
@@ -531,6 +572,7 @@ class AppController {
           this.writingCanvas.setChar(char);
           const infoEl = document.getElementById("canvasCharInfo");
           if (infoEl) infoEl.textContent = `Chữ: ${char}`;
+          this.updateWritingCharDetails(char);
         }
       });
     });
@@ -560,7 +602,14 @@ class AppController {
     document.getElementById("btnSpeakCard")?.addEventListener("click", (e) => {
       e.stopPropagation();
       const currentItem = this.getCurrentSRSCardItem();
-      if (currentItem) this.speech.speak(currentItem.hanzi);
+      const btn = document.getElementById("btnSpeakCard");
+      if (currentItem) {
+        this.speech.speak(
+          currentItem.hanzi,
+          () => { if (btn) btn.textContent = "🔊 Đang đọc..."; },
+          () => { if (btn) btn.textContent = "Nghe Phát Âm"; }
+        );
+      }
     });
 
     document.querySelectorAll(".srs-buttons-bar button").forEach(btn => {
@@ -639,11 +688,18 @@ class AppController {
     if (selectorList) {
       const allUniqueChars = Array.from(
         new Set(VOCABULARY_DATA.flatMap(v => v.hanzi.split("")))
-      ).slice(0, 36);
+      ).slice(0, 48);
 
-      selectorList.innerHTML = allUniqueChars.map((ch, idx) => `
-        <button type="button" class="char-btn ${idx === 0 ? 'active' : ''}" data-char="${ch}">${ch}</button>
-      `).join("");
+      selectorList.innerHTML = allUniqueChars.map((ch, idx) => {
+        const info = HANZI_CHAR_DETAILS[ch];
+        const sub = info ? info.hanViet : "";
+        return `
+          <button type="button" class="char-btn ${idx === 0 ? 'active' : ''}" data-char="${ch}" title="${sub ? `${ch} (${sub})` : ch}">
+            <span class="char-btn-hanzi">${ch}</span>
+            <span class="char-btn-sub">${sub}</span>
+          </button>
+        `;
+      }).join("");
 
       selectorList.querySelectorAll(".char-btn").forEach(btn => {
         btn.addEventListener("click", () => {
@@ -653,9 +709,22 @@ class AppController {
           this.writingCanvas.setChar(ch);
           const infoEl = document.getElementById("canvasCharInfo");
           if (infoEl) infoEl.textContent = `Chữ: ${ch}`;
+          this.updateWritingCharDetails(ch);
         });
       });
+
+      this.updateWritingCharDetails(allUniqueChars[0] || "研");
     }
+
+    document.getElementById("btnSpeakWritingChar")?.addEventListener("click", () => {
+      const ch = this.writingCanvas?.charToPractice || "研";
+      const btn = document.getElementById("btnSpeakWritingChar");
+      this.speech.speak(
+        ch,
+        () => { if (btn) btn.textContent = "🔊 Đang đọc..."; },
+        () => { if (btn) btn.textContent = "🔊 Nghe Phát Âm"; }
+      );
+    });
 
     document.getElementById("btnToggleGhost")?.addEventListener("click", () => {
       this.writingCanvas.toggleGhost();
@@ -678,6 +747,45 @@ class AppController {
       this.updateUserUI();
       this.showToast("Xuất sắc! Đã hoàn thành luyện viết 1 chữ Hán (+20 XP)");
     });
+  }
+
+  updateWritingCharDetails(ch) {
+    const details = HANZI_CHAR_DETAILS[ch] || {
+      pinyin: "",
+      hanViet: "",
+      meaning: "Chữ Hán trong kho từ vựng tiếng Trung",
+      radical: "Tra cứu bộ thủ",
+      strokes: 1,
+      strokeType: "Quy chuẩn bút thuận",
+      compounds: ""
+    };
+
+    if (!details.pinyin) {
+      const matchWord = VOCABULARY_DATA.find(v => v.hanzi.includes(ch));
+      if (matchWord) {
+        details.meaning = matchWord.meaning;
+        details.hanViet = matchWord.hanViet;
+        details.radical = matchWord.radical;
+      }
+    }
+
+    const hanziEl = document.getElementById("detailCharHanzi");
+    const pyEl = document.getElementById("detailCharPinyin");
+    const hvEl = document.getElementById("detailCharHanViet");
+    const meanEl = document.getElementById("detailCharMeaning");
+    const radEl = document.getElementById("detailCharRadical");
+    const stkEl = document.getElementById("detailCharStrokes");
+    const typeEl = document.getElementById("detailCharType");
+    const compEl = document.getElementById("detailCharCompounds");
+
+    if (hanziEl) hanziEl.textContent = ch;
+    if (pyEl) pyEl.textContent = details.pinyin || "";
+    if (hvEl) hvEl.textContent = details.hanViet || "";
+    if (meanEl) meanEl.textContent = details.meaning || "";
+    if (radEl) radEl.textContent = details.radical || "";
+    if (stkEl) stkEl.textContent = details.strokes ? `${details.strokes} nét` : "";
+    if (typeEl) typeEl.textContent = details.strokeType || "Kết cấu quy chuẩn";
+    if (compEl) compEl.textContent = details.compounds || "";
   }
 
   // ========================== TAB 5: PHÁT ÂM AI ==========================
@@ -942,6 +1050,158 @@ class AppController {
         `).join("")}
       `;
     }
+  }
+
+  // ========================== ROADMAP INTERACTIVE LESSONS ==========================
+  initLessonRunner() {
+    const modal = document.getElementById("roadmapLessonModal");
+    document.getElementById("btnCloseLessonModal")?.addEventListener("click", () => {
+      if (modal) modal.style.display = "none";
+    });
+    document.getElementById("btnCancelLesson")?.addEventListener("click", () => {
+      if (modal) modal.style.display = "none";
+    });
+
+    document.getElementById("btnFinishLesson")?.addEventListener("click", () => {
+      const stageKey = this.currentLessonStage || "stage1";
+      const lesson = ROADMAP_LESSONS[stageKey];
+      if (!lesson) return;
+
+      const reward = lesson.xpReward || 40;
+      this.userManager.addXP(reward, `Hoàn thành bài học: ${lesson.title}`);
+
+      const user = this.userManager.currentUser;
+      if (user && user.roadmap && user.roadmap[stageKey]) {
+        user.roadmap[stageKey].progress = Math.min(100, (user.roadmap[stageKey].progress || 0) + 50);
+        this.userManager.saveUsers();
+      }
+
+      this.updateUserUI();
+      if (modal) modal.style.display = "none";
+      this.showToast(`Xuất sắc! Bạn đã hoàn thành bài học và nhận được +${reward} XP 🎉`);
+    });
+  }
+
+  openStageLesson(stageKey) {
+    const lesson = ROADMAP_LESSONS[stageKey];
+    if (!lesson) return;
+    this.currentLessonStage = stageKey;
+
+    const modal = document.getElementById("roadmapLessonModal");
+    const badgeEl = document.getElementById("lessonStageBadge");
+    const titleEl = document.getElementById("lessonStageTitle");
+    const bodyEl = document.getElementById("lessonModalBody");
+    const finishBtn = document.getElementById("btnFinishLesson");
+
+    if (badgeEl) badgeEl.textContent = lesson.badge;
+    if (titleEl) titleEl.textContent = lesson.title;
+    if (finishBtn) finishBtn.textContent = `Hoàn Thành Bài Học (+${lesson.xpReward} XP)`;
+
+    if (bodyEl) {
+      bodyEl.innerHTML = lesson.sections.map((sec, sIdx) => {
+        let secHtml = `
+          <div class="lesson-section-box">
+            <div class="lesson-section-title">${sec.title}</div>
+            ${sec.content ? `<div style="font-size: 0.92rem; color: var(--ink-secondary); line-height: 1.6;">${sec.content}</div>` : ''}
+        `;
+
+        if (sec.vocabList && sec.vocabList.length > 0) {
+          secHtml += `<div style="margin-top: 10px;">` + sec.vocabList.map(v => `
+            <div class="lesson-vocab-item">
+              <div>
+                <span class="hanzi-main hanzi-font" style="font-size: 1.3rem; margin-right: 8px;">${v.hanzi}</span>
+                <span style="font-size: 0.95rem; font-weight: 700; color: var(--primary); margin-right: 8px;">${v.pinyin}</span>
+                <span style="font-size: 0.85rem; color: var(--ink-muted);">${v.mean}</span>
+              </div>
+              <button type="button" class="btn btn-secondary btn-sm btn-lesson-speak" data-text="${v.hanzi}" title="Nghe phát âm chuẩn">
+                🔊 Nghe
+              </button>
+            </div>
+          `).join("") + `</div>`;
+        }
+
+        if (sec.quiz) {
+          secHtml += `
+            <div style="margin-top: 14px; background: var(--surface); padding: 14px; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+              <div style="font-weight: 800; font-size: 0.92rem; margin-bottom: 10px; color: var(--ink);">${sec.quiz.question}</div>
+              <div class="lesson-quiz-options" data-sidx="${sIdx}">
+                ${sec.quiz.options.map((opt, oIdx) => `
+                  <button type="button" class="lesson-quiz-option" data-correct="${opt.correct}" data-oidx="${oIdx}">
+                    ${opt.text}
+                  </button>
+                `).join("")}
+              </div>
+              <div class="lesson-quiz-explain" style="display: none; font-size: 0.84rem; color: var(--ink-secondary); margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border);">
+                💡 <strong>Giải thích:</strong> ${sec.quiz.explanation}
+              </div>
+            </div>
+          `;
+        }
+
+        secHtml += `</div>`;
+        return secHtml;
+      }).join("");
+
+      // Gắn sự kiện phát âm
+      bodyEl.querySelectorAll(".btn-lesson-speak").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const txt = btn.getAttribute("data-text");
+          this.speech.speak(
+            txt,
+            () => { btn.textContent = "🔊 Đang đọc..."; },
+            () => { btn.textContent = "🔊 Nghe"; }
+          );
+        });
+      });
+
+      // Gắn sự kiện trắc nghiệm
+      bodyEl.querySelectorAll(".lesson-quiz-options").forEach(quizWrap => {
+        const explainEl = quizWrap.parentElement.querySelector(".lesson-quiz-explain");
+        quizWrap.querySelectorAll(".lesson-quiz-option").forEach(optBtn => {
+          optBtn.addEventListener("click", () => {
+            const isCorrect = optBtn.getAttribute("data-correct") === "true";
+            quizWrap.querySelectorAll(".lesson-quiz-option").forEach(b => {
+              b.disabled = true;
+              if (b.getAttribute("data-correct") === "true") b.classList.add("correct");
+            });
+            if (!isCorrect) {
+              optBtn.classList.add("wrong");
+            }
+            if (explainEl) explainEl.style.display = "block";
+          });
+        });
+      });
+    }
+
+    if (modal) modal.style.display = "flex";
+  }
+
+  // ========================== USER GUIDE CONTROLLER ==========================
+  initUserGuide() {
+    const modal = document.getElementById("userGuideModal");
+    document.getElementById("btnCloseUserGuideModal")?.addEventListener("click", () => {
+      if (modal) modal.style.display = "none";
+    });
+
+    document.querySelectorAll(".guide-tab-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".guide-tab-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        const guideKey = btn.getAttribute("data-guide");
+        this.renderUserGuideContent(guideKey);
+      });
+    });
+  }
+
+  renderUserGuideContent(guideKey) {
+    const box = document.getElementById("guideContentBox");
+    if (!box) return;
+
+    const data = USER_GUIDE_DATA[guideKey] || USER_GUIDE_DATA.roadmap;
+    box.innerHTML = `
+      <h4>${data.title}</h4>
+      ${data.content}
+    `;
   }
 
   // ========================== TAB 7: HỒ SƠ & BẢO MẬT ==========================

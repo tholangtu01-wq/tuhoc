@@ -1,5 +1,5 @@
 /**
- * Automated Verification Suite for Hanzii Pro (Multi-User & Personalized Roadmap)
+ * Automated Verification Suite for tiengtrungdema (Multi-User & Personalized Roadmap)
  */
 
 import assert from "node:assert";
@@ -19,7 +19,7 @@ global.localStorage = {
 };
 global.window = {};
 
-console.log("=== BẮT ĐẦU KIỂM THỬ HANZII PRO (MULTI-USER & ROADMAP) ===");
+console.log("=== BẮT ĐẦU KIỂM THỬ TIENGTRUNGDEMA (MULTI-USER & ROADMAP) ===");
 
 // 1. Kiểm thử Kho Từ Vựng Học Thuật
 console.log("1. Kiểm tra tính toàn vẹn của Kho Từ Vựng Hanzii...");
