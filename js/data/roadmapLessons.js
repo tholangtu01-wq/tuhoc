@@ -89,35 +89,74 @@ export const ROADMAP_LESSONS = {
   },
 
   stage3: {
-    badge: "Chặng 3: Trung Cấp",
-    title: "Ngữ Pháp Nâng Cao HSK 3 - 4 & Diễn Đạt Logic",
-    xpReward: 60,
+    badge: "Chặng 3: HSK 3",
+    title: "Trung Cấp HSK 3: Cấu Trúc So Sánh, Liên Từ Ghép & Bổ Ngữ Kết Quả",
+    xpReward: 55,
     sections: [
       {
-        title: "1. Cấu Trúc Đặc Biệt: Câu Chữ 把 (bǎ) & Bổ Ngữ Kết Quả",
+        title: "1. Ngữ Pháp Trọng Tâm: Câu So Sánh 比 & Bổ Ngữ Kết Quả",
         content: `
           <ul style="padding-left: 20px; margin: 8px 0; line-height: 1.6;">
-            <li><strong>Câu chữ 把:</strong> Chủ ngữ + 把 + Tân ngữ + Động từ + Thành phần khác.<br>Dùng khi muốn nhấn mạnh sự xử lý, tác động làm biến đổi trạng thái của tân ngữ.<br>Ví dụ: <em>请把作业交给我 (Qǐng bǎ zuòyè jiāo gěi wǒ - Xin hãy nộp bài tập cho tôi).</em></li>
+            <li><strong>Câu so sánh chữ 比 (bǐ):</strong> A + 比 + B + Tính từ.<br>Ví dụ: <em>今天比昨天冷 (Jīntiān bǐ zuótiān lěng - Hôm nay lạnh hơn hôm qua). Không dùng '很' trước tính từ.</em></li>
             <li><strong>Bổ ngữ kết quả:</strong> Động từ + (完, 懂, 见, 到, 清楚).<br>Ví dụ: <em>这个问题我终于弄清楚了 (Vấn đề này tôi cuối cùng đã làm sáng tỏ).</em></li>
-            <li><strong>Cặp liên từ diễn đạt logic:</strong> 虽然...但是... (Tuy... nhưng...); 不仅...而且... (Không những... mà còn...).</li>
+            <li><strong>Cặp liên từ diễn đạt:</strong> 虽然...但是... (Tuy... nhưng...); 因为...所以... (Bởi vì... cho nên...).</li>
           </ul>
         `
       },
       {
-        title: "2. Từ Vựng Trọng Tâm Chặng Trung Cấp",
+        title: "2. Từ Vựng Trọng Tâm HSK 3",
         vocabList: [
           { hanzi: "提高", pinyin: "tígāo", mean: "Nâng cao • 显著提高学术汉语水平。" },
-          { hanzi: "解决", pinyin: "jiějué", mean: "Giải quyết • 成功解决了大规模计算难题。" },
-          { hanzi: "影响", pinyin: "yǐngxiǎng", mean: "Ảnh hưởng • 对学术发展产生深远影响。" }
+          { hanzi: "解决", pinyin: "jiějué", mean: "Giải quyết • 成功解决了学习中的难题。" },
+          { hanzi: "清楚", pinyin: "qīngchu", mean: "Rõ ràng, sáng tỏ • 请把问题解释清楚。" }
         ]
       },
       {
         title: "3. Bài Tập Tương Tác Củng Cố",
         quiz: {
-          question: "Trong câu: '他把电脑____了', từ nào sau đây điền vào chỗ trống hợp quy tắc câu chữ 把 nhất?",
+          question: "Trong câu: '这个问题我终于弄____了', từ nào sau đây điền vào làm bổ ngữ kết quả chuẩn ngữ pháp nhất?",
           options: [
-            { text: "A. 买 (chỉ có một động từ đơn độc)", correct: false },
-            { text: "B. 修好 (Động từ + Bổ ngữ kết quả hoàn tất)", correct: true },
+            { text: "A. 清楚 (rõ ràng, làm sáng tỏ)", correct: true },
+            { text: "B. 问 (hỏi)", correct: false },
+            { text: "C. 正在 (đang)", correct: false },
+            { text: "D. 很多 (rất nhiều)", correct: false }
+          ],
+          explanation: "'弄清楚' (nòng qīngchu): Động từ '弄' kết hợp với tính từ '清楚' làm bổ ngữ kết quả, biểu thị kết quả làm sáng tỏ vấn đề."
+        }
+      }
+    ]
+  },
+
+  stage4: {
+    badge: "Chặng 4: HSK 4",
+    title: "Trung Cấp Cao HSK 4: Câu Chữ 把, Câu Bị Động 被 & Bổ Ngữ Khả Năng",
+    xpReward: 65,
+    sections: [
+      {
+        title: "1. Ngữ Pháp Trọng Tâm: Câu Chữ 把 & Câu Chữ 被",
+        content: `
+          <ul style="padding-left: 20px; margin: 8px 0; line-height: 1.6;">
+            <li><strong>Câu chữ 把:</strong> Chủ ngữ + 把 + Tân ngữ + Động từ + Thành phần khác.<br>Dùng khi muốn nhấn mạnh sự xử lý, làm biến đổi trạng thái của tân ngữ.<br>Ví dụ: <em>请把作业交给我 (Xin hãy nộp bài tập cho tôi).</em></li>
+            <li><strong>Câu bị động chữ 被:</strong> Đối tượng chịu tác động + 被 + Chủ thể gây ra + Động từ + Thành phần khác.<br>Ví dụ: <em>钱包被小偷偷走了 (Ví tiền bị tên trộm lấy mất rồi).</em></li>
+            <li><strong>Bổ ngữ khả năng:</strong> Động từ + 得 / 不 + Bổ ngữ kết quả (Ví dụ: 看得懂 - đọc hiểu được; 做不完 - làm không hết).</li>
+          </ul>
+        `
+      },
+      {
+        title: "2. Từ Vựng Trọng Tâm HSK 4",
+        vocabList: [
+          { hanzi: "关键", pinyin: "guānjiàn", mean: "Mấu chốt • 抓住了解决问题的关键环节。" },
+          { hanzi: "考虑", pinyin: "kǎolǜ", mean: "Cân nhắc, suy xét • 需要全面考虑各种实际情况。" },
+          { hanzi: "顺利", pinyin: "shùnlì", mean: "Thuận lợi • 祝你面试工作一切顺利。" }
+        ]
+      },
+      {
+        title: "3. Bài Tập Tương Tác",
+        quiz: {
+          question: "Trong câu chữ 把: '他把电脑____了', cụm từ nào điền vào vị trí vị ngữ là chuẩn xác?",
+          options: [
+            { text: "A. 修好 (Động từ + Bổ ngữ kết quả hoàn tất)", correct: true },
+            { text: "B. 买 (động từ đơn lẻ chưa có thành phần khác)", correct: false },
             { text: "C. 正在 (phó từ chỉ thì tiếp diễn)", correct: false },
             { text: "D. 电脑 (lặp lại tân ngữ)", correct: false }
           ],
@@ -127,15 +166,15 @@ export const ROADMAP_LESSONS = {
     ]
   },
 
-  stage4: {
-    badge: "Chặng 4: Cao Cấp",
-    title: "Kỹ Năng Đọc Hiểu Báo Chí & Phân Tích Câu Phức HSK 5",
-    xpReward: 70,
+  stage5: {
+    badge: "Chặng 5: HSK 5",
+    title: "Cao Cấp HSK 5: Kỹ Năng Đọc Hiểu Báo Chí & Phân Tích Câu Phức Đa Tầng",
+    xpReward: 75,
     sections: [
       {
         title: "1. Kỹ Năng Phân Tích Câu Dài Nhiều Tầng Định Ngữ",
         content: `
-          <p>Văn bản báo chí và học thuật thường có định ngữ rất dài trước trợ từ <strong>的 (de)</strong>. 3 bước đọc hiểu nhanh:</p>
+          <p>Văn bản báo chí và nghị luận HSK 5 thường có định ngữ rất dài trước trợ từ <strong>的 (de)</strong>. 3 bước đọc hiểu nhanh:</p>
           <ol style="padding-left: 20px; margin: 8px 0; line-height: 1.6;">
             <li>Tìm nòng cốt câu: Chủ ngữ chính + Động từ vị ngữ + Danh từ trung tâm ngữ.</li>
             <li>Tách bỏ các mệnh đề dài trước trợ từ '的' để nắm ý chính tức thì.</li>
@@ -144,11 +183,11 @@ export const ROADMAP_LESSONS = {
         `
       },
       {
-        title: "2. Thuật Ngữ & Từ Vựng Báo Chí Cao Cấp",
+        title: "2. Thuật Ngữ & Từ Vựng Báo Chí HSK 5",
         vocabList: [
           { hanzi: "趋势", pinyin: "qūshì", mean: "Xu thế • 清晰展现了全球变暖的演进趋势。" },
           { hanzi: "核心", pinyin: "héxīn", mean: "Cốt lõi • 科技创新是现代产业升级的核心驱动力。" },
-          { hanzi: "价值", pinyin: "jiàzhí", mean: "Giá trị • 蕴含着深刻的当代伦理与学术价值。" }
+          { hanzi: "价值", pinyin: "jiàzhí", mean: "Giá trị • 蕴含着深刻的当代伦理与社会价值。" }
         ]
       },
       {
@@ -156,8 +195,8 @@ export const ROADMAP_LESSONS = {
         quiz: {
           question: "Trong cụm danh từ tiếng Trung có trợ từ '的', thành phần đứng trước '的' có chức năng ngữ pháp gì?",
           options: [
-            { text: "A. Trung tâm ngữ (danh từ được nói tới)", correct: false },
-            { text: "B. Định ngữ (thành phần bổ nghĩa làm rõ tính chất, phạm vi)", correct: true },
+            { text: "A. Định ngữ (thành phần bổ nghĩa làm rõ tính chất, phạm vi)", correct: true },
+            { text: "B. Trung tâm ngữ (danh từ được nói tới)", correct: false },
             { text: "C. Trạng ngữ thời gian", correct: false },
             { text: "D. Bổ ngữ khả năng", correct: false }
           ],
@@ -167,10 +206,50 @@ export const ROADMAP_LESSONS = {
     ]
   },
 
-  stage5: {
-    badge: "Chặng 5: Học Thuật",
-    title: "Cấu Trúc Luận Văn Khoa Học IMRaD & Bảo Vệ Khóa Luận HSK 6",
-    xpReward: 80,
+  stage6: {
+    badge: "Chặng 6: HSK 6",
+    title: "Cao Cấp HSK 6: Thành Ngữ 4 Chữ Kinh Điển & Ngữ Pháp Chuyên Sâu",
+    xpReward: 85,
+    sections: [
+      {
+        title: "1. Tinh Hoa Thành Ngữ 4 Chữ (成语) & Văn Phong Trang Trọng",
+        content: `
+          <p>Thành ngữ 4 chữ là đỉnh cao biểu đạt trong văn bản cao cấp HSK 6:</p>
+          <ul style="padding-left: 20px; margin: 8px 0; line-height: 1.6;">
+            <li><strong>循序渐进 (xún xù jiàn jìn - Tuần tự tiệm tiến):</strong> Học tập và nghiên cứu từng bước có hệ thống, không nóng vội đốt cháy giai đoạn.</li>
+            <li><strong>持之以恒 (chí zhī yǐ héng - Trì chi dĩ hằng):</strong> Giữ vững sự kiên định bền bỉ suốt thời gian dài.</li>
+            <li><strong>锲而不舍 (qiè ér bù shě - Khiết nhi bất xả):</strong> Chạm khắc không ngừng, kiên trì theo đuổi tới cùng.</li>
+          </ul>
+        `
+      },
+      {
+        title: "2. Từ Vựng & Cấu Trúc HSK 6",
+        vocabList: [
+          { hanzi: "阐述", pinyin: "chǎnshù", mean: "Xiển thuật • 深刻阐述了文化交融与创新的历史逻辑。" },
+          { hanzi: "渊博", pinyin: "yuānbó", mean: "Uyên bác • 展现了极为渊博的跨学科人文底蕴。" },
+          { hanzi: "涵义", pinyin: "hányì", mean: "Hàm nghĩa • 剖析古汉语经典词汇的多重哲理涵义。" }
+        ]
+      },
+      {
+        title: "3. Bài Tập Tương Tác",
+        quiz: {
+          question: "Thành ngữ 【持之以恒】 (chí zhī yǐ héng) mang ý nghĩa giáo dục nào?",
+          options: [
+            { text: "A. Kiên trì, bền bỉ theo đuổi mục tiêu không ngừng nghỉ", correct: true },
+            { text: "B. Làm việc tùy hứng, khi vui thì làm", correct: false },
+            { text: "C. Hành động vội vã muốn thấy ngay kết quả", correct: false },
+            { text: "D. Bỏ dở giữa chừng khi gặp khó khăn", correct: false }
+          ],
+          explanation: "【持之以恒】 (Trì chi dĩ hằng): Giữ vững ý chí, duy trì hành động lâu dài đến khi đạt thành tựu."
+        }
+      }
+    ]
+  },
+
+  stage7: {
+    badge: "Chặng 7: Học Thuật",
+    title: "Cấu Trúc Luận Văn Khoa Học IMRaD & Bảo Vệ Khóa Luận Học Thuật",
+    xpReward: 100,
     sections: [
       {
         title: "1. 4 Khối Cấu Trúc Luận Văn Khoa Học Chuẩn Quốc Tế (IMRaD)",
@@ -186,9 +265,9 @@ export const ROADMAP_LESSONS = {
       {
         title: "2. Thuật Ngữ Nghiên Cứu & Bảo Vệ Luận Văn",
         vocabList: [
-          { hanzi: "答辩", pinyin: "dábiàn", mean: "Bảo vệ luận án • 顺利通过博士学位论文答辩。" },
-          { hanzi: "假设", pinyin: "jiǎshè", mean: "Giả thuyết • 验证关于神经元可塑性的初始假设。" },
-          { hanzi: "范式", pinyin: "fànshì", mean: "Hệ hình paradigm • 深刻重塑科学研究的基本范式。" }
+          { hanzi: "答辩", pinyin: "dábiàn", mean: "Bảo vệ luận án • 顺利通过硕士/博士学位论文答辩。" },
+          { hanzi: "假设", pinyin: "jiǎshè", mean: "Giả thuyết • 验证关于复杂系统演进的初始假设。" },
+          { hanzi: "范式", pinyin: "fànshì", mean: "Hệ hình paradigm • 深刻重塑跨学科科学研究的基本范式。" }
         ]
       },
       {
@@ -196,8 +275,8 @@ export const ROADMAP_LESSONS = {
         quiz: {
           question: "Trong cấu trúc một bài báo khoa học chuẩn (IMRaD), phần nào chịu trách nhiệm đối chiếu kết quả thực nghiệm với giả thuyết ban đầu?",
           options: [
-            { text: "A. 摘要 (Abstract / Tóm tắt nghiên cứu)", correct: false },
-            { text: "B. 结果与讨论 (Results & Discussion / Kết quả & Thảo luận)", correct: true },
+            { text: "A. 结果与讨论 (Results & Discussion / Kết quả & Thảo luận)", correct: true },
+            { text: "B. 摘要 (Abstract / Tóm tắt nghiên cứu)", correct: false },
             { text: "C. 参考文献 (References / Danh mục tài liệu tham khảo)", correct: false },
             { text: "D. 致谢 (Acknowledgements / Lời cảm ơn)", correct: false }
           ],
@@ -210,20 +289,20 @@ export const ROADMAP_LESSONS = {
 
 export const USER_GUIDE_DATA = {
   roadmap: {
-    title: "1. Hướng Dẫn Lộ Trình Học Cá Nhân Hóa (5 Chặng)",
+    title: "1. Hướng Dẫn Lộ Trình Học Cá Nhân Hóa (7 Chặng HSK 1 - HSK 6 & Học Thuật)",
     content: `
       <div class="guide-step-card">
         <strong>🎯 Mục Đích:</strong>
-        <p>Lộ trình học tập được thiết kế phân tầng từ cơ bản (Nhập môn Pinyin) đến chuyên sâu (Bảo vệ Luận văn HSK 6). Dữ liệu tiến độ và XP hoàn toàn riêng biệt cho từng người học.</p>
+        <p>Lộ trình học tập được thiết kế phân tầng khoa học và tuần tự qua 7 chặng từ HSK 1, HSK 2, HSK 3, HSK 4, HSK 5, HSK 6 đến Học thuật Luận văn chuyên sâu IMRaD. Dữ liệu tiến độ và XP hoàn toàn riêng biệt cho từng người học.</p>
       </div>
       <div class="guide-step-card">
         <strong>🚀 Cách Học:</strong>
         <ol style="padding-left: 20px; line-height: 1.6;">
-          <li>Tại tab <em>"Lộ Trình Của Tôi"</em>, bạn sẽ thấy 5 chặng học được đánh số từ Chặng 1 đến Chặng 5.</li>
+          <li>Tại tab <em>"Lộ Trình Của Tôi"</em>, bạn sẽ thấy 7 chặng học được đánh số liên tục từ Chặng 1 đến Chặng 7.</li>
           <li>Bấm vào nút <strong>"Học Ngay"</strong> trên chặng đã mở khóa để mở bài học tương tác.</li>
           <li>Đọc phần lý thuyết, bấm nút <strong>"🔊 Nghe"</strong> để nghe phát âm chuẩn bản ngữ của các từ vựng cốt lõi.</li>
           <li>Làm bài tập trắc nghiệm củng cố (Mini-Quiz).</li>
-          <li>Bấm nút <strong>"Hoàn Thành Bài Học (+XP)"</strong> để nhận điểm kinh nghiệm và tăng tiến độ chặng. Khi đạt 100%, chặng tiếp theo sẽ tự động mở khóa!</li>
+          <li>Bấm nút <strong>"Hoàn Thành Bài Học (+XP)"</strong> để kích hoạt bài test nâng cấp. Vượt qua bài test đạt >= 70% để hệ thống tự động mở khóa chặng tiếp theo!</li>
         </ol>
       </div>
     `

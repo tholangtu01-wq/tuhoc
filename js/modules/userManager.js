@@ -7,17 +7,28 @@ const USERS_STORAGE_KEY = "tiengtrungdema_users_v3";
 const CURRENT_USER_ID_KEY = "tiengtrungdema_current_user_id_v3";
 
 export const LEVEL_LABELS = {
-  level_0: "Mới bắt đầu (Bắt đầu từ con số 0)",
-  level_hsk1: "Căn bản (HSK 1 - 2)",
-  level_hsk3: "Trung cấp (HSK 3 - 4)",
-  level_hsk5: "Cao cấp (HSK 5)",
-  level_academic: "Học thuật & Luận văn (HSK 6)"
+  level_0: "1. Mới bắt đầu (Từ con số 0 / Chưa biết gì)",
+  level_hsk1: "2. Căn bản HSK 1 (~150 từ & Pinyin)",
+  level_hsk2: "3. Sơ cấp HSK 2 (~300 từ & Giao tiếp thường nhật)",
+  level_hsk3: "4. Trung cấp 1 HSK 3 (~600 từ & Đời sống)",
+  level_hsk4: "5. Trung cấp 2 HSK 4 (~1,200 từ & Phỏng vấn)",
+  level_hsk5: "6. Cao cấp 1 HSK 5 (~2,500 từ & Báo chí)",
+  level_hsk6: "7. Cao cấp 2 HSK 6 (~5,000 từ & Thành thạo)",
+  level_academic: "8. Học thuật & Luận văn (IMRaD)",
+  // Tuong thich nguoc
+  "hsk1-2": "2. Căn bản HSK 1 - 2",
+  "hsk3-4": "4. Trung cấp HSK 3 - 4",
+  "hsk5-6": "6. Cao cấp HSK 5 - 6",
+  academic: "8. Học thuật & Luận văn"
 };
 
 export const TARGET_LABELS = {
-  target_hsk2: "HSK 2 (Giao tiếp thường nhật)",
-  target_hsk4: "HSK 4 (Giao tiếp công việc & phỏng vấn)",
-  target_hsk6: "HSK 6 (Cao cấp & Báo chí lưu loát)",
+  target_hsk1: "HSK 1 — Nhập môn phát âm & 150 từ vựng",
+  target_hsk2: "HSK 2 — Giao tiếp căn bản hàng ngày",
+  target_hsk3: "HSK 3 — Tự tin sinh hoạt đời sống & du lịch",
+  target_hsk4: "HSK 4 — Giao tiếp nâng cao & phỏng vấn xin việc",
+  target_hsk5: "HSK 5 — Đọc báo chí & làm việc chuyên nghiệp",
+  target_hsk6: "HSK 6 — Cao cấp, thành ngữ & dịch thuật lưu loát",
   target_academic: "Học thuật & Luận văn Chuyên ngành (IMRaD)",
   academic: "Học thuật & Luận văn Chuyên ngành (IMRaD)",
   "hsk1-2": "HSK 1 - 2 (Căn bản)",
@@ -52,7 +63,7 @@ export class UserManager {
     const roadmap = {
       stage1: {
         key: "stage1",
-        name: "Chặng 1: Nhập Môn Pinyin & 214 Bộ Thủ",
+        name: "Chặng 1: Nhập Môn Pinyin & 214 Bộ Thủ (HSK 1)",
         desc: "4 thanh điệu, quy tắc biến điệu ngữ âm và 214 bộ thủ Hán tự nền tảng",
         progress: 0,
         unlocked: true,
@@ -63,8 +74,8 @@ export class UserManager {
       },
       stage2: {
         key: "stage2",
-        name: "Chặng 2: Nền Tảng HSK 1-2 & Giao Tiếp",
-        desc: "Mẫu câu giao tiếp hàng ngày, ngữ pháp chữ 是, 有/没有 và 300 từ vựng",
+        name: "Chặng 2: Nền Tảng HSK 2 & Giao Tiếp Đời Sống",
+        desc: "Mẫu câu giao tiếp hàng ngày, ngữ pháp chữ 是, 有/没有 và 300 từ vựng cốt lõi",
         progress: 0,
         unlocked: false,
         completedLesson: false,
@@ -74,8 +85,8 @@ export class UserManager {
       },
       stage3: {
         key: "stage3",
-        name: "Chặng 3: Trung Cấp HSK 3-4 & Ngữ Pháp",
-        desc: "Đoạn văn trung cấp, câu chữ 把, bổ ngữ kết quả và liên từ logic",
+        name: "Chặng 3: Trung Cấp HSK 3 & Liên Từ Ghép Câu",
+        desc: "Đoạn văn sinh hoạt, liên từ logic, so sánh 比, bổ ngữ kết quả và 600 từ vựng",
         progress: 0,
         unlocked: false,
         completedLesson: false,
@@ -85,8 +96,8 @@ export class UserManager {
       },
       stage4: {
         key: "stage4",
-        name: "Chặng 4: Cao Cấp HSK 5 & Đọc Báo Chí",
-        desc: "Phân tích câu phức nhiều tầng định ngữ, cấu trúc nghị luận xã hội",
+        name: "Chặng 4: Trung Cấp Cao HSK 4 & Câu Chữ 把, Bổ Ngữ",
+        desc: "Câu chữ 把, câu chữ 被, bổ ngữ khả năng/xu hướng và thảo luận phỏng vấn",
         progress: 0,
         unlocked: false,
         completedLesson: false,
@@ -96,44 +107,60 @@ export class UserManager {
       },
       stage5: {
         key: "stage5",
-        name: "Chặng 5: Học Thuật & Luận Văn Chuyên Sâu",
-        desc: "Cấu trúc luận văn IMRaD chuẩn quốc tế, bảo vệ khóa luận và thuật ngữ nghiên cứu",
+        name: "Chặng 5: Cao Cấp HSK 5 & Đọc Báo Chí, Nghị Luận",
+        desc: "Phân tích câu phức nhiều tầng định ngữ, cấu trúc nghị luận xã hội và văn hóa",
         progress: 0,
         unlocked: false,
         completedLesson: false,
         readyForTest: false,
         passedTest: false,
         checkpointExamId: "exam-stage5"
+      },
+      stage6: {
+        key: "stage6",
+        name: "Chặng 6: Cao Cấp HSK 6 & Thành Ngữ, Ngữ Pháp Chuyên Sâu",
+        desc: "Thành ngữ 4 chữ kinh điển, cấu trúc câu cổ điển, biên phiên dịch lưu loát",
+        progress: 0,
+        unlocked: false,
+        completedLesson: false,
+        readyForTest: false,
+        passedTest: false,
+        checkpointExamId: "exam-stage6"
+      },
+      stage7: {
+        key: "stage7",
+        name: "Chặng 7: Tiếng Trung Học Thuật Chuyên Sâu & Luận Văn IMRaD",
+        desc: "Cấu trúc luận văn IMRaD chuẩn quốc tế, bảo vệ khóa luận và thuật ngữ nghiên cứu",
+        progress: 0,
+        unlocked: false,
+        completedLesson: false,
+        readyForTest: false,
+        passedTest: false,
+        checkpointExamId: "exam-stage7"
       }
     };
 
-    // Tự động thích ứng lộ trình dựa trên Trình độ hiện tại (currentLevel)
-    if (currentLevel === "level_hsk1" || currentLevel === "hsk1-2") {
-      roadmap.stage1.unlocked = true;
-      roadmap.stage1.progress = 100;
-      roadmap.stage1.completedLesson = true;
-      roadmap.stage1.passedTest = true;
-      roadmap.stage2.unlocked = true;
-    } else if (currentLevel === "level_hsk3" || currentLevel === "hsk3-4") {
-      roadmap.stage1.unlocked = true;
-      roadmap.stage1.progress = 100;
-      roadmap.stage1.passedTest = true;
-      roadmap.stage2.unlocked = true;
-      roadmap.stage2.progress = 100;
-      roadmap.stage2.passedTest = true;
-      roadmap.stage3.unlocked = true;
-    } else if (currentLevel === "level_hsk5" || currentLevel === "hsk5-6") {
-      roadmap.stage1.unlocked = true;
-      roadmap.stage1.progress = 100;
-      roadmap.stage1.passedTest = true;
-      roadmap.stage2.unlocked = true;
-      roadmap.stage2.progress = 100;
-      roadmap.stage2.passedTest = true;
-      roadmap.stage3.unlocked = true;
-      roadmap.stage3.progress = 100;
-      roadmap.stage3.passedTest = true;
-      roadmap.stage4.unlocked = true;
-    }
+    // Tự động thích ứng lộ trình dựa trên Trình độ hiện tại (currentLevel: 1 -> 6 + Học thuật)
+    const levelOrder = ["level_0", "level_hsk1", "level_hsk2", "level_hsk3", "level_hsk4", "level_hsk5", "level_hsk6", "level_academic"];
+    let normalizedLevel = currentLevel;
+    if (currentLevel === "hsk1-2") normalizedLevel = "level_hsk1";
+    if (currentLevel === "hsk3-4") normalizedLevel = "level_hsk3";
+    if (currentLevel === "hsk5-6") normalizedLevel = "level_hsk5";
+    if (currentLevel === "academic") normalizedLevel = "level_academic";
+
+    const userLevelIdx = Math.max(0, levelOrder.indexOf(normalizedLevel));
+    const stageKeys = ["stage1", "stage2", "stage3", "stage4", "stage5", "stage6", "stage7"];
+
+    stageKeys.forEach((sKey, sIdx) => {
+      if (sIdx < userLevelIdx) {
+        roadmap[sKey].unlocked = true;
+        roadmap[sKey].progress = 100;
+        roadmap[sKey].completedLesson = true;
+        roadmap[sKey].passedTest = true;
+      } else if (sIdx === userLevelIdx) {
+        roadmap[sKey].unlocked = true;
+      }
+    });
 
     const curLabel = LEVEL_LABELS[currentLevel] || currentLevel;
     const tgtLabel = TARGET_LABELS[targetLevel] || targetLevel;
@@ -303,10 +330,12 @@ export class UserManager {
     if (!this.currentUser || !this.currentUser.roadmap) return;
     const xp = this.currentUser.xp;
     const rm = this.currentUser.roadmap;
-    if (xp >= 150 && rm.stage2) rm.stage2.unlocked = true;
-    if (xp >= 400 && rm.stage3) rm.stage3.unlocked = true;
-    if (xp >= 750 && rm.stage4) rm.stage4.unlocked = true;
-    if (xp >= 1200 && rm.stage5) rm.stage5.unlocked = true;
+    if (xp >= 100 && rm.stage2) rm.stage2.unlocked = true;
+    if (xp >= 250 && rm.stage3) rm.stage3.unlocked = true;
+    if (xp >= 450 && rm.stage4) rm.stage4.unlocked = true;
+    if (xp >= 700 && rm.stage5) rm.stage5.unlocked = true;
+    if (xp >= 1000 && rm.stage6) rm.stage6.unlocked = true;
+    if (xp >= 1400 && rm.stage7) rm.stage7.unlocked = true;
   }
 
   /**
@@ -325,10 +354,11 @@ export class UserManager {
 
   /**
    * Nâng cấp lộ trình khi người dùng vượt qua bài test kiểm tra (Checkpoint Test)
+   * Di chuyển tuần tự qua 7 chặng từ HSK 1 đến HSK 6 và Học thuật IMRaD
    */
   promoteStage(stageKey) {
     if (!this.currentUser || !this.currentUser.roadmap) return null;
-    const stageKeys = ["stage1", "stage2", "stage3", "stage4", "stage5"];
+    const stageKeys = ["stage1", "stage2", "stage3", "stage4", "stage5", "stage6", "stage7"];
     const idx = stageKeys.indexOf(stageKey);
     if (idx === -1) return null;
 
@@ -343,12 +373,14 @@ export class UserManager {
       const nextStage = this.currentUser.roadmap[nextKey];
       nextStage.unlocked = true;
 
-      // Nâng cấp trình độ hiện tại
+      // Nâng cấp trình độ hiện tại liên tục từ HSK 1 đến HSK 6 và Học thuật
       const nextLevelMap = {
-        stage2: "level_hsk1",
+        stage2: "level_hsk2",
         stage3: "level_hsk3",
-        stage4: "level_hsk5",
-        stage5: "level_academic"
+        stage4: "level_hsk4",
+        stage5: "level_hsk5",
+        stage6: "level_hsk6",
+        stage7: "level_academic"
       };
       if (nextLevelMap[nextKey]) {
         this.currentUser.currentLevel = nextLevelMap[nextKey];

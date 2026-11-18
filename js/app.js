@@ -37,6 +37,8 @@ class AppController {
     this.initProfileTab();
     this.initLessonRunner();
     this.initUserGuide();
+    this.initMobileBottomNav();
+    this.initKeyboardShortcuts();
 
     this.updateUserUI();
   }
@@ -283,9 +285,20 @@ class AppController {
       btn.setAttribute("aria-selected", isActive);
     });
 
+    // Đồng bộ trạng thái active trên thanh Bottom Nav điện thoại
+    document.querySelectorAll(".mobile-nav-btn").forEach(btn => {
+      const bTab = btn.getAttribute("data-tab");
+      btn.classList.toggle("active", bTab === tabId);
+    });
+
     document.querySelectorAll(".tab-pane").forEach(pane => {
       pane.classList.toggle("active", pane.id === tabId);
     });
+
+    // Cuộn nhẹ lên đầu trang khi chuyển tab trên màn hình điện thoại
+    if (typeof window !== "undefined" && window.innerWidth <= 768) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
 
     if (tabId === "tabWriting" && this.writingCanvas) {
       setTimeout(() => this.writingCanvas.initCanvas(), 100);
@@ -317,11 +330,13 @@ class AppController {
     if (!stagesList) return;
 
     const stages = [
-      { key: "stage1", icon: "🌱", targetTab: "tabVocab", desc: "Nắm vững 4 thanh điệu, quy tắc phiên âm Pinyin và 214 Bộ thủ Hán tự nền tảng." },
-      { key: "stage2", icon: "🗣️", targetTab: "tabVocab", desc: "Giao tiếp hàng ngày, ngữ pháp cơ bản và 300 từ vựng cốt lõi HSK 1 - 2." },
-      { key: "stage3", icon: "📚", targetTab: "tabVocab", desc: "Đọc hiểu đoạn văn trung cấp, liên từ học thuật và 600 từ vựng HSK 3 - 4." },
-      { key: "stage4", icon: "📰", targetTab: "tabVocab", desc: "Đọc báo chí, nghị luận xã hội và mở rộng 1200 từ vựng nâng cao HSK 5." },
-      { key: "stage5", icon: "🎓", targetTab: "tabVocab", desc: "Viết luận văn khoa học, bảo vệ khóa luận và thuật ngữ nghiên cứu chuyên sâu." }
+      { key: "stage1", icon: "🌱", targetTab: "tabVocab", desc: "Nắm vững 4 thanh điệu, quy tắc phiên âm Pinyin và 214 Bộ thủ Hán tự nền tảng (HSK 1)." },
+      { key: "stage2", icon: "🗣️", targetTab: "tabVocab", desc: "Giao tiếp hàng ngày, ngữ pháp câu chữ 是, 有/没有 và 300 từ vựng cốt lõi (HSK 2)." },
+      { key: "stage3", icon: "📚", targetTab: "tabVocab", desc: "Đoạn văn sinh hoạt, cấu trúc so sánh 比, liên từ ghép câu và 600 từ vựng (HSK 3)." },
+      { key: "stage4", icon: "💼", targetTab: "tabVocab", desc: "Câu chữ 把, câu bị động 被, bổ ngữ khả năng/xu hướng và thảo luận phỏng vấn (HSK 4)." },
+      { key: "stage5", icon: "📰", targetTab: "tabVocab", desc: "Đọc báo chí, nghị luận xã hội, câu phức nhiều tầng định ngữ và từ vựng HSK 5." },
+      { key: "stage6", icon: "🖋️", targetTab: "tabVocab", desc: "Thành ngữ 4 chữ kinh điển, cấu trúc câu cổ điển, biên phiên dịch lưu loát (HSK 6)." },
+      { key: "stage7", icon: "🎓", targetTab: "tabVocab", desc: "Cấu trúc luận văn khoa học IMRaD chuẩn quốc tế, bảo vệ khóa luận và thuật ngữ nghiên cứu." }
     ];
 
     stagesList.innerHTML = stages.map(s => {
@@ -718,6 +733,25 @@ class AppController {
       this.updateWritingCharDetails(allUniqueChars[0] || "研");
     }
 
+    // Chọn ngòi bút viết thon gọn (Bút bi 0.5mm, Bút gel 0.7mm, Bút lông 1.0mm)
+    document.querySelectorAll(".btn-pen-type").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".btn-pen-type").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        const penType = btn.getAttribute("data-pen") || "ballpoint";
+        if (this.writingCanvas) {
+          this.writingCanvas.setPenType(penType);
+          this.writingCanvas.render();
+        }
+        const penNames = {
+          ballpoint: "Bút bi thanh 0.5mm (Nét mảnh, đều như viết tập sách)",
+          gel: "Bút gel học sinh 0.7mm (Thon gọn, có độ nhấn nhẹ)",
+          brush: "Bút lông nhỏ 1.0mm (Nét thanh đậm linh hoạt)"
+        };
+        this.showToast(`Đã chuyển ngòi bút: ${penNames[penType] || penType}`);
+      });
+    });
+
     document.getElementById("btnSpeakWritingChar")?.addEventListener("click", () => {
       const ch = this.writingCanvas?.charToPractice || "研";
       const btn = document.getElementById("btnSpeakWritingChar");
@@ -726,6 +760,10 @@ class AppController {
         () => { if (btn) btn.textContent = "🔊 Đang đọc..."; },
         () => { if (btn) btn.textContent = "🔊 Nghe Phát Âm"; }
       );
+    });
+
+    document.getElementById("btnToggleExpandCanvas")?.addEventListener("click", () => {
+      this.toggleCanvasExpanded();
     });
 
     document.getElementById("btnToggleGhost")?.addEventListener("click", () => {
@@ -749,6 +787,18 @@ class AppController {
       this.updateUserUI();
       this.showToast("Xuất sắc! Đã hoàn thành luyện viết 1 chữ Hán (+20 XP)");
     });
+  }
+
+  toggleCanvasExpanded() {
+    const panel = document.querySelector(".canvas-panel");
+    const btn = document.getElementById("btnToggleExpandCanvas");
+    if (!panel) return;
+    const isExpanded = panel.classList.toggle("expanded");
+    if (btn) btn.textContent = isExpanded ? "🗗 Thu Nhỏ" : "⛶ Phóng To";
+    if (this.writingCanvas) {
+      setTimeout(() => this.writingCanvas.handleResize(), 80);
+    }
+    this.showToast(isExpanded ? "Đã phóng to bảng viết (Tối ưu cho iPad & Laptop)" : "Đã đưa bảng viết về kích thước mặc định");
   }
 
   updateWritingCharDetails(ch) {
@@ -1356,6 +1406,179 @@ class AppController {
         `).join("");
       }
     }
+  }
+
+  // ========================== MULTI-DEVICE OPTIMIZATIONS (MOBILE / IPAD / LAPTOP) ==========================
+  initMobileBottomNav() {
+    // Điều hướng nhanh bằng thanh Bottom Nav ngón tay cái trên điện thoại
+    document.querySelectorAll(".mobile-nav-btn[data-tab]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const targetId = btn.getAttribute("data-tab");
+        if (targetId) this.switchTab(targetId);
+      });
+    });
+
+    const menuModal = document.getElementById("mobileMenuModal");
+    const openMenuBtn = document.getElementById("btnOpenMobileMenu");
+    const closeMenuBtn = document.getElementById("btnCloseMobileMenu");
+
+    openMenuBtn?.addEventListener("click", () => {
+      if (menuModal) menuModal.style.display = "flex";
+    });
+
+    closeMenuBtn?.addEventListener("click", () => {
+      if (menuModal) menuModal.style.display = "none";
+    });
+
+    menuModal?.addEventListener("click", (e) => {
+      if (e.target === menuModal) menuModal.style.display = "none";
+    });
+
+    // Các mục chức năng mở rộng trong Menu di động
+    document.querySelectorAll(".mobile-menu-item[data-tab]").forEach(item => {
+      item.addEventListener("click", () => {
+        const targetId = item.getAttribute("data-tab");
+        if (menuModal) menuModal.style.display = "none";
+        if (targetId) this.switchTab(targetId);
+      });
+    });
+
+    document.getElementById("btnMobileGuide")?.addEventListener("click", () => {
+      if (menuModal) menuModal.style.display = "none";
+      const guideModal = document.getElementById("userGuideModal");
+      if (guideModal) guideModal.style.display = "flex";
+      this.renderUserGuideContent("roadmap");
+    });
+
+    document.getElementById("btnMobileTheme")?.addEventListener("click", () => {
+      if (menuModal) menuModal.style.display = "none";
+      document.getElementById("btnToggleTheme")?.click();
+    });
+  }
+
+  initKeyboardShortcuts() {
+    const shortcutsModal = document.getElementById("shortcutsModal");
+    document.getElementById("btnOpenShortcuts")?.addEventListener("click", () => {
+      this.openShortcutsModal();
+    });
+
+    document.getElementById("btnCloseShortcutsModal")?.addEventListener("click", () => {
+      if (shortcutsModal) shortcutsModal.style.display = "none";
+    });
+
+    shortcutsModal?.addEventListener("click", (e) => {
+      if (e.target === shortcutsModal) shortcutsModal.style.display = "none";
+    });
+
+    window.addEventListener("keydown", (e) => {
+      // Bỏ qua khi người dùng đang nhập văn bản trong ô input, textarea hoặc select
+      const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : "";
+      if (activeTag === "input" || activeTag === "textarea" || activeTag === "select") {
+        if (e.key === "Escape") {
+          document.activeElement.blur();
+        }
+        return;
+      }
+
+      const activeTabPane = document.querySelector(".tab-pane.active");
+      const activeTabId = activeTabPane ? activeTabPane.id : "";
+
+      // Phím tắt tìm kiếm tức thì: "/"
+      if (e.key === "/" && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+        this.switchTab("tabVocab");
+        const searchInput = document.getElementById("vocabSearchInput");
+        if (searchInput) {
+          searchInput.focus();
+          searchInput.select();
+        }
+        return;
+      }
+
+      // Phím tắt mở bảng tra cứu phím tắt: "?"
+      if (e.key === "?" && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+        this.openShortcutsModal();
+        return;
+      }
+
+      // Phím tắt chuyển nhanh Tab 1-7: Alt + 1..7
+      if (e.altKey && e.key >= "1" && e.key <= "7") {
+        e.preventDefault();
+        const tabList = ["tabRoadmap", "tabVocab", "tabSRS", "tabWriting", "tabSpeech", "tabExam", "tabProfile"];
+        const target = tabList[parseInt(e.key, 10) - 1];
+        if (target) this.switchTab(target);
+        return;
+      }
+
+      // Phím tắt trên Tab Flashcards (SRS SM-2)
+      if (activeTabId === "tabSRS") {
+        if (e.code === "Space" || e.key === "Enter") {
+          e.preventDefault();
+          document.getElementById("flashcardWrap")?.click();
+          return;
+        }
+        if (["1", "2", "3", "4"].includes(e.key)) {
+          e.preventDefault();
+          const rating = parseInt(e.key, 10) - 1;
+          this.handleSRSReview(rating);
+          return;
+        }
+        if (e.key.toLowerCase() === "p" || e.key.toLowerCase() === "a") {
+          e.preventDefault();
+          document.getElementById("btnSpeakCard")?.click();
+          return;
+        }
+      }
+
+      // Phím tắt trên Tab Luyện Viết
+      if (activeTabId === "tabWriting" && this.writingCanvas) {
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
+          e.preventDefault();
+          this.writingCanvas.undo();
+          return;
+        }
+        if (e.key === "Delete" || e.key.toLowerCase() === "c") {
+          e.preventDefault();
+          this.writingCanvas.clear();
+          return;
+        }
+        if (e.key.toLowerCase() === "g") {
+          e.preventDefault();
+          document.getElementById("btnToggleGhost")?.click();
+          return;
+        }
+        if (e.key.toLowerCase() === "m") {
+          e.preventDefault();
+          document.getElementById("btnToggleGrid")?.click();
+          return;
+        }
+        if (e.key.toLowerCase() === "b") {
+          e.preventDefault();
+          const pens = ["ballpoint", "gel", "brush"];
+          const curIdx = pens.indexOf(this.writingCanvas.penType);
+          const nextPen = pens[(curIdx + 1) % pens.length];
+          const targetBtn = document.querySelector(`.btn-pen-type[data-pen="${nextPen}"]`);
+          targetBtn?.click();
+          return;
+        }
+        if (e.key.toLowerCase() === "f") {
+          e.preventDefault();
+          this.toggleCanvasExpanded();
+          return;
+        }
+        if (e.key.toLowerCase() === "p") {
+          e.preventDefault();
+          document.getElementById("btnSpeakWritingChar")?.click();
+          return;
+        }
+      }
+    });
+  }
+
+  openShortcutsModal() {
+    const modal = document.getElementById("shortcutsModal");
+    if (modal) modal.style.display = "flex";
   }
 }
 

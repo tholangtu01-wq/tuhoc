@@ -17,7 +17,11 @@ global.localStorage = {
   removeItem: (k) => { delete mockStorage[k]; },
   clear: () => { Object.keys(mockStorage).forEach(k => delete mockStorage[k]); }
 };
-global.window = {};
+global.window = {
+  addEventListener: () => {},
+  removeEventListener: () => {},
+  devicePixelRatio: 1
+};
 
 console.log("=== BẮT ĐẦU KIỂM THỬ TIENGTRUNGDEMA (MULTI-USER & ROADMAP) ===");
 
@@ -83,27 +87,84 @@ const sim = speechEngine.calculateSimilarity("研究", "研究");
 assert.strictEqual(sim, 1.0);
 console.log("   -> [PASS] So khớp giọng nói chuẩn xác");
 
-// 5. Kiểm thử Bài Học Chặng, Checkpoint Exams & Nâng Cấp Lộ Trình
-console.log("5. Kiểm tra tính năng Hoàn thành Bài Học & Nâng Cấp Lộ Trình (Checkpoint Exam)...");
-assert(EXAM_SUITES.length >= 5, "Cần có đủ 5 đề thi cho 5 chặng");
+// 5. Kiểm thử Bài Học Chặng, Checkpoint Exams & Nâng Cấp Lộ Trình 7 Chặng (HSK 1 -> 6 + Học Thuật)
+console.log("5. Kiểm tra tính năng Lộ Trình 7 Chặng (HSK 1 đến 6 & Học Thuật)...");
+assert(EXAM_SUITES.length >= 7, `Cần có đủ 7 đề thi cho 7 chặng, hiện có: ${EXAM_SUITES.length}`);
 assert(EXAM_SUITES.find(e => e.stageKey === "stage1"), "Thiếu đề thi cho chặng 1");
-assert(EXAM_SUITES.find(e => e.stageKey === "stage5"), "Thiếu đề thi cho chặng 5");
+assert(EXAM_SUITES.find(e => e.stageKey === "stage6"), "Thiếu đề thi cho chặng 6");
+assert(EXAM_SUITES.find(e => e.stageKey === "stage7"), "Thiếu đề thi cho chặng 7");
 
 const testLearner = userManager.createUser("Lê Văn Nam", "level_0", "target_academic", "🧑‍🏫");
 assert.strictEqual(testLearner.roadmap.stage1.unlocked, true);
 assert.strictEqual(testLearner.roadmap.stage2.unlocked, false);
+assert.strictEqual(testLearner.roadmap.stage7.unlocked, false);
 
 // Hoàn thành bài học chặng 1
 userManager.completeStageLesson("stage1");
 assert.strictEqual(testLearner.roadmap.stage1.completedLesson, true);
 assert.strictEqual(testLearner.roadmap.stage1.readyForTest, true);
 
-// Nâng cấp sau khi đạt bài test
+// Nâng cấp sau khi đạt bài test chặng 1
 const promoResult = userManager.promoteStage("stage1");
 assert.strictEqual(promoResult.nextStageKey, "stage2");
 assert.strictEqual(testLearner.roadmap.stage1.passedTest, true);
 assert.strictEqual(testLearner.roadmap.stage2.unlocked, true);
-assert.strictEqual(testLearner.currentLevel, "level_hsk1");
-console.log("   -> [PASS] Cơ chế hoàn thành bài tập, kích hoạt bài test và nâng cấp lộ trình hoạt động hoàn hảo");
+assert.strictEqual(testLearner.currentLevel, "level_hsk2");
 
-console.log("=== TẤT CẢ 5 BỘ KIỂM THỬ ĐỀU ĐẠT CHUẨN 100% ===");
+// Kiểm tra học viên đăng ký với trình độ sẵn có (Ví dụ HSK 3)
+const intermediateLearner = userManager.createUser("Hoàng Long", "level_hsk3", "target_hsk6", "👨‍🎓");
+assert.strictEqual(intermediateLearner.roadmap.stage1.progress, 100, "Chặng 1 phải hoàn thành");
+assert.strictEqual(intermediateLearner.roadmap.stage2.progress, 100, "Chặng 2 phải hoàn thành");
+assert.strictEqual(intermediateLearner.roadmap.stage3.progress, 100, "Chặng 3 phải hoàn thành");
+assert.strictEqual(intermediateLearner.roadmap.stage4.unlocked, true, "Chặng 4 phải được mở khóa cho học viên HSK 3");
+
+console.log("   -> [PASS] Cơ chế lộ trình 7 chặng (1 tới 6 + Học thuật), tự thích ứng và nâng cấp hoạt động hoàn hảo");
+
+// 6. Kiểm thử Cấu hình Bút Viết Thon Gọn (Vở Tập Sách Học Sinh)
+console.log("6. Kiểm tra cấu hình Bút Viết Thon Gọn...");
+import { HanziWritingCanvas } from "../js/modules/writingCanvas.js";
+const mockCanvas = {
+  getContext: () => new Proxy({}, {
+    get: (target, prop) => {
+      if (typeof prop === "string" && !target[prop]) {
+        target[prop] = () => {};
+      }
+      return target[prop];
+    },
+    set: (target, prop, val) => {
+      target[prop] = val;
+      return true;
+    }
+  }),
+  getBoundingClientRect: () => ({ width: 320, height: 320, left: 0, top: 0 }),
+  addEventListener: () => {}
+};
+
+const writing = new HanziWritingCanvas(mockCanvas, { penType: "ballpoint" });
+assert.strictEqual(writing.penType, "ballpoint");
+assert(writing.baseInkWidth <= 3.0, "Ngòi bút bi thanh mảnh học sinh phải <= 3.0px");
+
+writing.setPenType("gel");
+assert.strictEqual(writing.penType, "gel");
+assert(writing.baseInkWidth <= 3.5, "Ngòi bút gel học sinh phải <= 3.5px");
+
+console.log("   -> [PASS] Cấu hình nét chữ viết tay thon gọn mô phỏng vở tập sách hoạt động chính xác 100%");
+
+// 7. Kiểm thử Tối Ưu Hóa Đa Nền Tảng (iPad, Mobile, Laptop)
+console.log("7. Kiểm tra Tối Ưu Hóa Đa Thiết Bị (Orientation, Resize & Pressure Scaling)...");
+// Kiểm tra khả năng co giãn nét vẽ khi xoay màn hình thiết bị
+writing.strokes = [
+  [{ x: 100, y: 100, pressure: 0.8, time: 1000 }, { x: 150, y: 150, pressure: 0.9, time: 1050 }]
+];
+assert.strictEqual(writing.strokes.length, 1);
+assert.strictEqual(writing.strokes[0][0].x, 100);
+
+// Giả lập xoay màn hình iPad từ 320px sang 480px (tỷ lệ 1.5x)
+mockCanvas.getBoundingClientRect = () => ({ width: 480, height: 480, left: 0, top: 0 });
+writing.handleResize();
+assert.strictEqual(writing.displayWidth, 480);
+assert.strictEqual(writing.strokes[0][0].x, 150, "Tọa độ nét vẽ phải tự động nhân tỷ lệ 1.5x khi xoay màn hình");
+
+console.log("   -> [PASS] Nét vẽ tự động căn chỉnh tỷ lệ chính xác khi xoay màn hình hoặc đổi kích thước");
+
+console.log("=== TẤT CẢ 7 BỘ KIỂM THỬ ĐỀU ĐẠT CHUẨN 100% ===");

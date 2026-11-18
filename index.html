@@ -2,17 +2,22 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>tiengtrungdema — Nen Tang Hoc Tieng Trung Noi Bo</title>
-  <meta name="description" content="Ung dung hoc tieng Trung noi bo tiengtrungdema">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+  <title>tiengtrungdema — Nền Tảng Học Tiếng Trung Đa Nền Tảng</title>
+  <meta name="description" content="Ứng dụng học tiếng Trung tối ưu hóa cho iPad, Điện thoại và Laptop tiengtrungdema">
   <link rel="icon" type="image/svg+xml" href="icon.svg">
   <link rel="apple-touch-icon" href="icon.svg">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#b91c1c">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="tiengtrungdema">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="format-detection" content="telephone=no">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@500;700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/styles.css?v=20261119v4">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500&family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css?v=20261119v6">
 </head>
 <body>
 
@@ -48,6 +53,10 @@
 
         <button type="button" id="btnOpenUserGuide" class="btn btn-secondary btn-sm" title="Hướng dẫn sử dụng toàn diện tiengtrungdema">
           📖 Hướng Dẫn
+        </button>
+
+        <button type="button" id="btnOpenShortcuts" class="btn btn-secondary btn-sm desktop-only-btn" title="Xem danh sách phím tắt máy tính (Phím ?)">
+          ⌨️ Phím Tắt
         </button>
 
         <button type="button" id="btnToggleTheme" class="btn btn-secondary btn-sm" title="Chuyển chế độ Sáng / Tối">
@@ -249,16 +258,16 @@
 
         <div class="srs-buttons-bar">
           <button type="button" class="btn btn-srs-again" data-rating="0">
-            Quên (1 ngày)
+            Quên (1 ngày) <span class="kbd-hint">1</span>
           </button>
           <button type="button" class="btn btn-srs-hard" data-rating="1">
-            Khó (Nhớ mang máng)
+            Khó (Nhớ mang máng) <span class="kbd-hint">2</span>
           </button>
           <button type="button" class="btn btn-srs-good" data-rating="2">
-            Tốt (Nhớ rõ)
+            Tốt (Nhớ rõ) <span class="kbd-hint">3</span>
           </button>
           <button type="button" class="btn btn-srs-easy" data-rating="3">
-            Dễ (Rất thuộc)
+            Dễ (Rất thuộc) <span class="kbd-hint">4</span>
           </button>
         </div>
       </div>
@@ -277,18 +286,35 @@
             <canvas id="hanziCanvas"></canvas>
           </div>
 
+          <!-- THANH CHỌN NGÒI BÚT VIẾT THON GỌN (MÔ PHỎNG VỞ TẬP SÁCH HỌC SINH) -->
+          <div class="pen-selector-bar">
+            <span class="pen-selector-label">Ngòi Bút:</span>
+            <button type="button" class="btn-pen-type active" data-pen="ballpoint" title="Bút bi thanh 0.5mm: Nét mảnh, đều, mô phỏng viết tập sách hàng ngày">
+              🖊️ Bút Bi Thanh (0.5mm)
+            </button>
+            <button type="button" class="btn-pen-type" data-pen="gel" title="Bút gel học sinh 0.7mm: Thon gọn, có độ nhấn nhẹ tự nhiên">
+              ✒️ Bút Gel (0.7mm)
+            </button>
+            <button type="button" class="btn-pen-type" data-pen="brush" title="Bút lông nhỏ 1.0mm: Nét thanh đậm linh hoạt">
+              🖌️ Bút Lông Nhỏ (1.0mm)
+            </button>
+          </div>
+
           <div class="canvas-controls">
-            <button type="button" id="btnToggleGhost" class="btn btn-secondary btn-sm">
-              Mẫu Nét Mờ: BẬT
+            <button type="button" id="btnToggleExpandCanvas" class="btn btn-secondary btn-sm" title="Mở rộng bảng viết (Tối ưu cho iPad & Laptop - Phím F)">
+              ⛶ Phóng To
             </button>
-            <button type="button" id="btnToggleGrid" class="btn btn-secondary btn-sm">
-              Lưới: Mễ tự (米)
+            <button type="button" id="btnToggleGhost" class="btn btn-secondary btn-sm" title="Bật/Tắt mẫu nét mờ (Phím G)">
+              Mẫu Nét Mờ: BẬT <span class="kbd-hint">G</span>
             </button>
-            <button type="button" id="btnUndoStroke" class="btn btn-secondary btn-sm">
-              Hoàn Tác Nét
+            <button type="button" id="btnToggleGrid" class="btn btn-secondary btn-sm" title="Đổi kiểu lưới (Phím M)">
+              Lưới: Mễ tự (米) <span class="kbd-hint">M</span>
             </button>
-            <button type="button" id="btnClearCanvas" class="btn btn-secondary btn-sm">
-              Xóa Bảng
+            <button type="button" id="btnUndoStroke" class="btn btn-secondary btn-sm" title="Hoàn tác nét vừa vẽ (Ctrl+Z)">
+              Hoàn Tác <span class="kbd-hint">Ctrl+Z</span>
+            </button>
+            <button type="button" id="btnClearCanvas" class="btn btn-secondary btn-sm" title="Xóa toàn bộ bảng vẽ (Phím C hoặc Delete)">
+              Xóa Bảng <span class="kbd-hint">C</span>
             </button>
             <button type="button" id="btnCompleteWriting" class="btn btn-teal btn-sm">
               Hoàn Thành (+20 XP)
@@ -299,7 +325,7 @@
           <div class="char-details-card" id="currentCharDetailsCard">
             <div class="char-details-header">
               <div class="char-big-display">
-                <span class="char-hero-hanzi brush-font" id="detailCharHanzi">研</span>
+                <span class="char-hero-hanzi kaiti-font" id="detailCharHanzi">研</span>
                 <div>
                   <div class="char-py-hv">
                     <span class="pinyin-badge" id="detailCharPinyin">yán</span>
@@ -597,20 +623,27 @@
         <div class="form-group" style="margin-bottom: 14px;">
           <label class="form-label" for="inputCurrentLevel">Trình độ tiếng Trung hiện tại của bạn:</label>
           <select id="inputCurrentLevel" class="form-input">
-            <option value="level_0" selected>1. Mới bắt đầu (Bắt đầu từ con số 0 / Chưa biết gì)</option>
-            <option value="level_hsk1">2. Căn bản HSK 1 - 2 (Đã biết Pinyin &amp; ~300 từ vựng)</option>
-            <option value="level_hsk3">3. Trung cấp HSK 3 - 4 (Giao tiếp khá &amp; ~1200 từ vựng)</option>
-            <option value="level_hsk5">4. Cao cấp HSK 5 (Đọc hiểu báo chí &amp; ~2500 từ vựng)</option>
+            <option value="level_0" selected>1. Mới bắt đầu (Từ con số 0 / Chưa biết gì)</option>
+            <option value="level_hsk1">2. Căn bản HSK 1 (~150 từ &amp; Pinyin căn bản)</option>
+            <option value="level_hsk2">3. Sơ cấp HSK 2 (~300 từ &amp; Giao tiếp thường nhật)</option>
+            <option value="level_hsk3">4. Trung cấp 1 HSK 3 (~600 từ &amp; Sinh hoạt, du lịch)</option>
+            <option value="level_hsk4">5. Trung cấp 2 HSK 4 (~1,200 từ &amp; Thảo luận đa chủ đề)</option>
+            <option value="level_hsk5">6. Cao cấp 1 HSK 5 (~2,500 từ &amp; Đọc hiểu báo chí)</option>
+            <option value="level_hsk6">7. Cao cấp 2 HSK 6 (~5,000 từ &amp; Thành thạo lưu loát)</option>
+            <option value="level_academic">8. Học thuật &amp; Luận văn Chuyên ngành (IMRaD)</option>
           </select>
         </div>
 
         <div class="form-group" style="margin-bottom: 14px;">
           <label class="form-label" for="inputTargetLevel">Mức học mong muốn (Mục tiêu của bạn):</label>
           <select id="inputTargetLevel" class="form-input">
-            <option value="target_academic" selected>Học thuật &amp; Luận văn Chuyên ngành (IMRaD)</option>
-            <option value="target_hsk2">HSK 2 — Giao tiếp cơ bản hàng ngày</option>
+            <option value="target_hsk1">HSK 1 — Nhập môn phát âm chuẩn &amp; từ vựng sơ cấp</option>
+            <option value="target_hsk2">HSK 2 — Giao tiếp căn bản thường nhật hàng ngày</option>
+            <option value="target_hsk3">HSK 3 — Tự tin giao tiếp đời sống &amp; du lịch</option>
             <option value="target_hsk4">HSK 4 — Giao tiếp nâng cao &amp; Phỏng vấn xin việc</option>
-            <option value="target_hsk6">HSK 6 — Cao cấp &amp; Đọc tài liệu báo chí lưu loát</option>
+            <option value="target_hsk5">HSK 5 — Đọc hiểu báo chí &amp; Làm việc chuyên nghiệp</option>
+            <option value="target_hsk6">HSK 6 — Cao cấp, thành ngữ &amp; Biên phiên dịch lưu loát</option>
+            <option value="target_academic" selected>Học thuật &amp; Luận văn Chuyên ngành (IMRaD)</option>
           </select>
         </div>
 
@@ -702,17 +735,169 @@
     </div>
   </div>
 
+  <!-- ==================== KEYBOARD SHORTCUTS MODAL (LAPTOP / DESKTOP) ==================== -->
+  <div id="shortcutsModal" class="modal-overlay" style="display: none;">
+    <div class="modal-card shortcuts-modal-card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 10px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 1.4rem;">⌨️</span>
+          <h2 style="font-size: 1.25rem; font-weight: 800; margin: 0;">Phím Tắt Máy Tính (Laptop / Desktop)</h2>
+        </div>
+        <button type="button" class="btn btn-secondary btn-sm" id="btnCloseShortcutsModal">✕ Đóng</button>
+      </div>
+
+      <div class="shortcuts-content-grid">
+        <div class="shortcut-group">
+          <div class="shortcut-group-title">🗂️ Ôn Tập Thẻ Flashcards (SM-2)</div>
+          <div class="shortcut-row">
+            <span class="shortcut-desc">Lật mặt trước / mặt sau thẻ</span>
+            <span class="shortcut-keys"><kbd class="kbd">Space</kbd> / <kbd class="kbd">Enter</kbd></span>
+          </div>
+          <div class="shortcut-row">
+            <span class="shortcut-desc">Đánh giá: Quên (1 ngày)</span>
+            <span class="shortcut-keys"><kbd class="kbd">1</kbd></span>
+          </div>
+          <div class="shortcut-row">
+            <span class="shortcut-desc">Đánh giá: Khó / Tốt / Dễ</span>
+            <span class="shortcut-keys"><kbd class="kbd">2</kbd> / <kbd class="kbd">3</kbd> / <kbd class="kbd">4</kbd></span>
+          </div>
+          <div class="shortcut-row">
+            <span class="shortcut-desc">Nghe phát âm chuẩn</span>
+            <span class="shortcut-keys"><kbd class="kbd">P</kbd> / <kbd class="kbd">A</kbd></span>
+          </div>
+        </div>
+
+        <div class="shortcut-group">
+          <div class="shortcut-group-title">✍️ Luyện Viết Bút Thuận</div>
+          <div class="shortcut-row">
+            <span class="shortcut-desc">Hoàn tác nét vẽ vừa vẽ</span>
+            <span class="shortcut-keys"><kbd class="kbd">Ctrl + Z</kbd></span>
+          </div>
+          <div class="shortcut-row">
+            <span class="shortcut-desc">Xóa sạch bảng vẽ</span>
+            <span class="shortcut-keys"><kbd class="kbd">C</kbd> / <kbd class="kbd">Del</kbd></span>
+          </div>
+          <div class="shortcut-row">
+            <span class="shortcut-desc">Bật / Tắt mẫu nét mờ</span>
+            <span class="shortcut-keys"><kbd class="kbd">G</kbd></span>
+          </div>
+          <div class="shortcut-row">
+            <span class="shortcut-desc">Đổi lưới Mễ (米) / Điền (田)</span>
+            <span class="shortcut-keys"><kbd class="kbd">M</kbd></span>
+          </div>
+          <div class="shortcut-row">
+            <span class="shortcut-desc">Đổi ngòi bút (Bi / Gel / Lông)</span>
+            <span class="shortcut-keys"><kbd class="kbd">B</kbd></span>
+          </div>
+          <div class="shortcut-row">
+            <span class="shortcut-desc">Phóng to / Toàn màn hình</span>
+            <span class="shortcut-keys"><kbd class="kbd">F</kbd></span>
+          </div>
+        </div>
+
+        <div class="shortcut-group">
+          <div class="shortcut-group-title">🧭 Điều Hướng Nhanh Hệ Thống</div>
+          <div class="shortcut-row">
+            <span class="shortcut-desc">Tìm kiếm từ vựng tức thì</span>
+            <span class="shortcut-keys"><kbd class="kbd">/</kbd></span>
+          </div>
+          <div class="shortcut-row">
+            <span class="shortcut-desc">Chuyển đổi Tab 1 đến 7</span>
+            <span class="shortcut-keys"><kbd class="kbd">Alt + 1..7</kbd></span>
+          </div>
+          <div class="shortcut-row">
+            <span class="shortcut-desc">Mở bảng tra cứu phím tắt</span>
+            <span class="shortcut-keys"><kbd class="kbd">?</kbd></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MOBILE BOTTOM NAVIGATION (ĐIỆN THOẠI & TABLET) ==================== -->
+  <nav class="mobile-bottom-nav" aria-label="Thanh điều hướng di động">
+    <button type="button" class="mobile-nav-btn active" data-tab="tabRoadmap">
+      <span class="nav-icon">🧭</span>
+      <span class="nav-label">Lộ Trình</span>
+    </button>
+    <button type="button" class="mobile-nav-btn" data-tab="tabVocab">
+      <span class="nav-icon">📖</span>
+      <span class="nav-label">Từ Điển</span>
+    </button>
+    <button type="button" class="mobile-nav-btn" data-tab="tabSRS">
+      <span class="nav-icon">🗂️</span>
+      <span class="nav-label">Ôn Thẻ</span>
+    </button>
+    <button type="button" class="mobile-nav-btn" data-tab="tabWriting">
+      <span class="nav-icon">✍️</span>
+      <span class="nav-label">Tập Viết</span>
+    </button>
+    <button type="button" class="mobile-nav-btn" id="btnOpenMobileMenu">
+      <span class="nav-icon">☰</span>
+      <span class="nav-label">Thêm</span>
+    </button>
+  </nav>
+
+  <!-- ==================== MOBILE MORE MENU SHEET ==================== -->
+  <div id="mobileMenuModal" class="modal-overlay" style="display: none;">
+    <div class="modal-card mobile-menu-sheet">
+      <div class="sheet-handle"></div>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid var(--border); padding-bottom: 10px;">
+        <h3 style="font-size: 1.15rem; font-weight: 800; margin: 0;">Chức Năng Mở Rộng</h3>
+        <button type="button" class="btn btn-secondary btn-sm" id="btnCloseMobileMenu">✕ Đóng</button>
+      </div>
+
+      <div class="mobile-menu-grid">
+        <button type="button" class="mobile-menu-item" data-tab="tabSpeech">
+          <div class="item-icon">🎙️</div>
+          <div class="item-text">
+            <strong>Phát Âm AI</strong>
+            <span>Nhận diện giọng nói chuẩn Bắc Kinh</span>
+          </div>
+        </button>
+        <button type="button" class="mobile-menu-item" data-tab="tabExam">
+          <div class="item-icon">📝</div>
+          <div class="item-text">
+            <strong>Phòng Thi CBT HSK</strong>
+            <span>Đề thi thử 7 chặng &amp; Chứng nhận</span>
+          </div>
+        </button>
+        <button type="button" class="mobile-menu-item" data-tab="tabProfile">
+          <div class="item-icon">👤</div>
+          <div class="item-text">
+            <strong>Hồ Sơ &amp; Lịch Sử</strong>
+            <span>Xem XP, chuỗi học &amp; đổi hồ sơ</span>
+          </div>
+        </button>
+        <button type="button" class="mobile-menu-item" id="btnMobileGuide">
+          <div class="item-icon">📖</div>
+          <div class="item-text">
+            <strong>Hướng Dẫn Toàn Diện</strong>
+            <span>Chi tiết cách học từng tính năng</span>
+          </div>
+        </button>
+        <button type="button" class="mobile-menu-item" id="btnMobileTheme">
+          <div class="item-icon">🌓</div>
+          <div class="item-text">
+            <strong>Đổi Giao Diện Sáng / Tối</strong>
+            <span>Bảo vệ mắt khi học ban đêm</span>
+          </div>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- TOAST CONTAINER -->
   <div id="toastContainer"></div>
 
   <!-- CORE CONTROLLER -->
-  <script type="module" src="js/app.js?v=20261119v4"></script>
+  <script type="module" src="js/app.js?v=20261119v6"></script>
 
   <!-- SERVICE WORKER REGISTRATION (OFFLINE PWA) -->
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=20261119v4').then(reg => {
+        navigator.serviceWorker.register('./sw.js?v=20261119v6').then(reg => {
           console.log('tiengtrungdema ServiceWorker active:', reg.scope);
           if (reg.update) reg.update();
         }).catch(err => {
