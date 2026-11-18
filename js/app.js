@@ -1,18 +1,16 @@
 /**
  * tiengtrungdema — Main Application Controller
- * Tích hợp hệ thống bảo mật Mã Truy Cập (Access Gate), đa người dùng và lộ trình riêng biệt
+ * Nền tảng Tự Học Tiếng Trung Cá Nhân Hóa & Lộ Trình Nâng Cấp Tự Động (Checkpoint Exams)
  */
 
 import { VOCABULARY_DATA, RADICALS_DATA, HANZI_CHAR_DETAILS } from "./data/vocabulary.js";
 import { EXAM_SUITES } from "./data/exams.js";
-import { UserManager } from "./modules/userManager.js";
+import { UserManager, LEVEL_LABELS, TARGET_LABELS } from "./modules/userManager.js";
 import { SRSEngine } from "./modules/srs.js";
 import { HanziWritingCanvas } from "./modules/writingCanvas.js";
 import { SpeechEngine } from "./modules/speechEngine.js";
 import { ExamRoom } from "./modules/examRoom.js";
 import { ROADMAP_LESSONS, USER_GUIDE_DATA } from "./data/roadmapLessons.js";
-
-const DEFAULT_ACCESS_KEYS = ["tiengtrungdema", "dema2026", "dema888"];
 
 class AppController {
   constructor() {
@@ -26,7 +24,6 @@ class AppController {
     this.selectedAvatar = "👨‍🎓";
     this.currentLessonStage = "stage1";
 
-    this.initAccessGate();
     this.initDOM();
     this.initTheme();
     this.initUserSystem();
@@ -55,75 +52,6 @@ class AppController {
       toast.style.opacity = "0";
       setTimeout(() => toast.remove(), 300);
     }, 2800);
-  }
-
-  // ========================== ACCESS GATE (BẢO MẬT TRUY CẬP) ==========================
-  initAccessGate() {
-    const overlay = document.getElementById("accessGateOverlay");
-    const form = document.getElementById("accessGateForm");
-    const errorEl = document.getElementById("accessGateError");
-    const inputKey = document.getElementById("inputAccessKey");
-
-    const getMasterKey = () => localStorage.getItem("tiengtrungdema_master_key") || "tiengtrungdema";
-    const isGranted = localStorage.getItem("tiengtrungdema_access_granted") === "true";
-
-    const updateCurrentKeyDisplay = () => {
-      const displayKeyEl = document.getElementById("displayCurrentAccessKey");
-      if (displayKeyEl) displayKeyEl.value = getMasterKey();
-    };
-
-    if (!isGranted) {
-      if (overlay) overlay.style.display = "flex";
-    } else {
-      if (overlay) overlay.style.display = "none";
-    }
-
-    if (form) {
-      form.addEventListener("submit", (e) => {
-        e.preventDefault();
-        const entered = (inputKey?.value || "").trim();
-        const masterKey = getMasterKey();
-
-        if (entered === masterKey || DEFAULT_ACCESS_KEYS.includes(entered.toLowerCase())) {
-          localStorage.setItem("tiengtrungdema_access_granted", "true");
-          if (overlay) overlay.style.display = "none";
-          this.showToast("Xác thực mã truy cập thành công! Chào mừng bạn.");
-          updateCurrentKeyDisplay();
-        } else {
-          if (errorEl) errorEl.style.display = "block";
-          if (inputKey) {
-            inputKey.value = "";
-            inputKey.focus();
-          }
-        }
-      });
-    }
-
-    // Khóa ứng dụng
-    const lockApp = () => {
-      localStorage.removeItem("tiengtrungdema_access_granted");
-      if (errorEl) errorEl.style.display = "none";
-      if (inputKey) inputKey.value = "";
-      if (overlay) overlay.style.display = "flex";
-      this.showToast("Đã khóa ứng dụng bảo mật.");
-    };
-
-    document.getElementById("btnLockApp")?.addEventListener("click", lockApp);
-    document.getElementById("btnLockAppFromProfile")?.addEventListener("click", lockApp);
-
-    // Đổi mã truy cập
-    document.getElementById("btnChangeAccessKey")?.addEventListener("click", () => {
-      const newKey = prompt("Nhập Mã Truy Cập Mới (chỉ những ai biết mã này mới được vào app):", getMasterKey());
-      if (newKey && newKey.trim().length >= 3) {
-        localStorage.setItem("tiengtrungdema_master_key", newKey.trim());
-        updateCurrentKeyDisplay();
-        this.showToast(`Đã đổi mã truy cập mới thành: "${newKey.trim()}"`);
-      } else if (newKey !== null) {
-        alert("Mã truy cập phải có ít nhất 3 ký tự!");
-      }
-    });
-
-    updateCurrentKeyDisplay();
   }
 
   initDOM() {
@@ -181,15 +109,20 @@ class AppController {
       onboardingForm.addEventListener("submit", (e) => {
         e.preventDefault();
         const nameInput = document.getElementById("inputUserName");
-        const targetSelect = document.getElementById("inputUserTarget");
-        const name = (nameInput?.value || "").trim();
-        const target = targetSelect?.value || "academic";
+        const currentLevelSelect = document.getElementById("inputCurrentLevel");
+        const targetLevelSelect = document.getElementById("inputTargetLevel");
 
-        if (!name) return;
+        const name = (nameInput?.value || "").trim() || "Học Viên";
+        const currentLevel = currentLevelSelect?.value || "level_0";
+        const targetLevel = targetLevelSelect?.value || "target_academic";
 
-        const user = this.userManager.createUser(name, target, this.selectedAvatar);
-        onboardingModal.style.display = "none";
-        this.showToast(`Chào mừng ${user.name}! Lộ trình học của bạn đã sẵn sàng.`);
+        const user = this.userManager.createUser(name, currentLevel, targetLevel, this.selectedAvatar);
+        localStorage.setItem("tiengtrungdema_has_onboarded", "true");
+        if (onboardingModal) onboardingModal.style.display = "none";
+
+        const curText = LEVEL_LABELS[user.currentLevel] || user.currentLevel;
+        const tgtText = TARGET_LABELS[user.targetLevel] || user.targetLevel;
+        this.showToast(`Chào mừng ${user.name}! Lộ trình từ [${curText}] tới [${tgtText}] đã sẵn sàng.`);
         this.updateUserUI();
         this.switchTab("tabRoadmap");
       });
@@ -203,29 +136,46 @@ class AppController {
       this.openUserSwitchModal();
     });
 
+    document.getElementById("btnEditUserProfile")?.addEventListener("click", () => {
+      this.openOnboardingModal(true);
+    });
+
     document.getElementById("btnCloseUserSwitchModal")?.addEventListener("click", () => {
       userSwitchModal.style.display = "none";
     });
 
     document.getElementById("btnAddNewUserFromModal")?.addEventListener("click", () => {
       userSwitchModal.style.display = "none";
-      this.openOnboardingModal();
+      this.openOnboardingModal(false);
     });
 
     document.getElementById("btnCreateNewUserFromSidebar")?.addEventListener("click", () => {
-      this.openOnboardingModal();
+      this.openOnboardingModal(false);
     });
 
-    if (!this.userManager.currentUser) {
-      this.openOnboardingModal();
+    // Tự động mở hộp thoại thiết lập cho học viên lần đầu tiên ghé thăm
+    const hasOnboarded = localStorage.getItem("tiengtrungdema_has_onboarded");
+    if (!hasOnboarded || (this.userManager.currentUser && this.userManager.currentUser.name === "Học Viên" && this.userManager.currentUser.examHistory.length === 0)) {
+      this.openOnboardingModal(false);
     }
   }
 
-  openOnboardingModal() {
+  openOnboardingModal(isEditing = false) {
     const modal = document.getElementById("onboardingModal");
     if (!modal) return;
     const nameInput = document.getElementById("inputUserName");
-    if (nameInput) nameInput.value = "";
+    const currentLevelSelect = document.getElementById("inputCurrentLevel");
+    const targetLevelSelect = document.getElementById("inputTargetLevel");
+
+    if (this.userManager.currentUser) {
+      if (nameInput) nameInput.value = isEditing ? this.userManager.currentUser.name : (this.userManager.currentUser.name === "Học Viên" ? "" : this.userManager.currentUser.name);
+      if (currentLevelSelect && this.userManager.currentUser.currentLevel) {
+        currentLevelSelect.value = this.userManager.currentUser.currentLevel;
+      }
+      if (targetLevelSelect && this.userManager.currentUser.targetLevel) {
+        targetLevelSelect.value = this.userManager.currentUser.targetLevel;
+      }
+    }
     modal.style.display = "flex";
   }
 
@@ -236,19 +186,15 @@ class AppController {
 
     list.innerHTML = this.userManager.users.map(u => {
       const isActive = u.id === this.userManager.currentUserId;
-      const targetLabels = {
-        academic: "Học thuật & Nghiên cứu",
-        "hsk1-2": "HSK 1-2 Căn bản",
-        "hsk3-4": "HSK 3-4 Trung cấp",
-        "hsk5-6": "HSK 5-6 Nâng cao"
-      };
+      const curTxt = LEVEL_LABELS[u.currentLevel] || u.currentLevel;
+      const tgtTxt = TARGET_LABELS[u.targetLevel] || u.targetLevel;
       return `
         <div class="user-switch-card ${isActive ? 'active' : ''}" data-uid="${u.id}">
           <div style="display: flex; align-items: center; gap: 12px;">
             <div style="font-size: 1.8rem;">${u.avatar}</div>
             <div>
               <div style="font-weight: 800; font-size: 0.95rem;">${u.name} ${isActive ? '<span class="badge-tag badge-hsk" style="font-size: 0.65rem;">ĐANG CHỌN</span>' : ''}</div>
-              <div style="font-size: 0.75rem; color: var(--ink-muted);">${targetLabels[u.target] || u.target} • ${u.xp} XP</div>
+              <div style="font-size: 0.75rem; color: var(--ink-muted);">${curTxt} ➔ ${tgtTxt} • ${u.xp} XP</div>
             </div>
           </div>
           <div>
@@ -296,15 +242,24 @@ class AppController {
 
     if (avatarEl) avatarEl.textContent = user.avatar;
     if (nameEl) nameEl.textContent = user.name;
-    const targetNames = {
-      academic: "Lộ trình Học thuật",
-      "hsk1-2": "Lộ trình HSK 1-2",
-      "hsk3-4": "Lộ trình HSK 3-4",
-      "hsk5-6": "Lộ trình HSK 5-6"
-    };
-    if (targetEl) targetEl.textContent = targetNames[user.target] || "Lộ trình Cá nhân";
+    const curLevelText = LEVEL_LABELS[user.currentLevel] || "Mới bắt đầu";
+    const tgtText = TARGET_LABELS[user.targetLevel] || "Học thuật";
+    if (targetEl) targetEl.textContent = `${curLevelText} ➔ ${tgtText}`;
     if (streakEl) streakEl.textContent = user.streak;
     if (xpEl) xpEl.textContent = user.xp;
+
+    const greetingAvatarEl = document.getElementById("roadmapGreetingAvatar");
+    const greetingNameEl = document.getElementById("roadmapGreetingName");
+    const targetDescEl = document.getElementById("roadmapTargetDesc");
+
+    if (greetingAvatarEl) greetingAvatarEl.textContent = user.avatar;
+    if (greetingNameEl) greetingNameEl.textContent = `Lộ Trình Học Của ${user.name}`;
+    if (targetDescEl) {
+      targetDescEl.innerHTML = `
+        Lộ trình học tập được thiết kế riêng biệt từ <strong>[${curLevelText}]</strong> hướng tới mục tiêu <strong>[${tgtText}]</strong>.<br>
+        Hoàn thành bài tập của chặng và vượt qua bài test kiểm tra để được hệ thống tự động nâng cấp lên chặng tiếp theo!
+      `;
+    }
 
     this.renderRoadmap();
     this.renderProfile();
@@ -370,35 +325,69 @@ class AppController {
     ];
 
     stagesList.innerHTML = stages.map(s => {
-      const stageData = user.roadmap[s.key];
+      const stageData = user.roadmap[s.key] || { unlocked: false, progress: 0, name: s.key, desc: s.desc };
       const isUnlocked = stageData.unlocked;
       const progress = stageData.progress || 0;
+      const isGraduated = stageData.passedTest;
+      const isReadyForTest = stageData.readyForTest || progress >= 100;
+
+      let badgeHtml = '';
+      let actionButtonsHtml = '';
+
+      if (isGraduated) {
+        badgeHtml = `<div class="stage-checkpoint-badge" style="background: rgba(34, 197, 94, 0.15); color: var(--success);">✅ ĐÃ TỐT NGHIỆP CHẶNG (ĐẠT TEST)</div>`;
+        actionButtonsHtml = `
+          <div style="display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end;">
+            <button type="button" class="btn btn-secondary btn-sm btn-learn-stage" data-stage="${s.key}">📖 Ôn Tập Bài Học</button>
+            <button type="button" class="btn btn-secondary btn-sm btn-take-checkpoint-test" data-stage="${s.key}">📝 Thi Lại (+XP)</button>
+          </div>
+        `;
+      } else if (isReadyForTest) {
+        badgeHtml = `<div class="stage-checkpoint-badge">🎯 ĐÃ SẴN SÀNG LÀM BÀI TEST NÂNG CẤP LỘ TRÌNH</div>`;
+        actionButtonsHtml = `
+          <div style="display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end;">
+            <button type="button" class="btn btn-secondary btn-sm btn-learn-stage" data-stage="${s.key}">📖 Xem Bài Học</button>
+            <button type="button" class="btn btn-checkpoint-exam btn-sm btn-take-checkpoint-test" data-stage="${s.key}">📝 Làm Bài Test Nâng Lộ Trình (+100 XP)</button>
+          </div>
+        `;
+      } else if (isUnlocked) {
+        badgeHtml = `<div style="font-size: 0.8rem; color: var(--primary); font-weight: 700; margin-bottom: 4px;">🚀 Đang trong lộ trình học</div>`;
+        actionButtonsHtml = `
+          <button type="button" class="btn btn-primary btn-sm btn-learn-stage" data-stage="${s.key}">
+            📖 Học Bài Học Chặng (+40 XP)
+          </button>
+        `;
+      } else {
+        badgeHtml = `<div style="font-size: 0.78rem; color: var(--ink-muted); margin-bottom: 4px;">🔒 Khóa</div>`;
+        actionButtonsHtml = `
+          <span class="badge-tag" style="background: var(--surface-alt); color: var(--ink-muted); font-size: 0.78rem;">
+            Vượt qua bài test chặng trước để mở khóa
+          </span>
+        `;
+      }
 
       return `
-        <div class="stage-card ${isUnlocked ? 'unlocked' : 'locked'}">
+        <div class="stage-card ${isUnlocked ? 'unlocked' : 'locked'} ${isReadyForTest && !isGraduated ? 'stage-ready' : ''}">
           <div class="stage-left">
-            <div class="stage-icon-circle">${isUnlocked ? s.icon : '🔒'}</div>
+            <div class="stage-icon-circle">${isGraduated ? '🎓' : (isUnlocked ? s.icon : '🔒')}</div>
             <div class="stage-info">
-              <h3>${stageData.name}</h3>
-              <p>${s.desc}</p>
+              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <h3 style="margin: 0;">${stageData.name}</h3>
+                ${badgeHtml}
+              </div>
+              <p style="margin-top: 4px;">${s.desc}</p>
             </div>
           </div>
           <div class="stage-right">
             <div>
               <div style="font-size: 0.8rem; font-weight: 800; color: var(--ink); text-align: right; margin-bottom: 4px;">
-                ${isUnlocked ? progress + '%' : 'Chưa mở khóa'}
+                ${isGraduated ? '100% Hoàn thành' : (isUnlocked ? progress + '%' : 'Chưa mở khóa')}
               </div>
               <div class="stage-progress-bar">
-                <div class="stage-progress-fill" style="width: ${progress}%;"></div>
+                <div class="stage-progress-fill" style="width: ${progress}%; background: ${isGraduated ? 'var(--success)' : ''};"></div>
               </div>
             </div>
-            ${isUnlocked ? `
-              <button type="button" class="btn btn-primary btn-sm btn-learn-stage" data-stage="${s.key}">
-                Học Ngay
-              </button>
-            ` : `
-              <span class="badge-tag" style="background: var(--surface-alt); color: var(--ink-muted);">Cần thêm XP</span>
-            `}
+            ${actionButtonsHtml}
           </div>
         </div>
       `;
@@ -410,6 +399,22 @@ class AppController {
         this.openStageLesson(stageKey);
       });
     });
+
+    stagesList.querySelectorAll(".btn-take-checkpoint-test").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const stageKey = btn.getAttribute("data-stage");
+        this.startStageCheckpointExam(stageKey);
+      });
+    });
+  }
+
+  startStageCheckpointExam(stageKey) {
+    this.switchTab("tabExam");
+    const exam = EXAM_SUITES.find(e => e.stageKey === stageKey) || EXAM_SUITES[0];
+    if (exam) {
+      this.startExam(exam.id);
+      this.showToast(`Bắt đầu làm bài test nâng cấp [${exam.title}]. Đạt >= 70% để mở khóa chặng tiếp theo!`);
+    }
   }
 
   // ========================== TAB 2: TỪ ĐIỂN & SỔ TAY ==========================
@@ -467,9 +472,6 @@ class AppController {
     if (searchInput) searchInput.addEventListener("input", render);
     if (levelSelect) levelSelect.addEventListener("change", render);
     if (categorySelect) categorySelect.addEventListener("change", render);
-
-    render();
-  }
 
     render();
   }
@@ -880,6 +882,13 @@ class AppController {
       document.getElementById("examActiveView").style.display = "none";
       document.getElementById("examSelectView").style.display = "block";
     });
+
+    document.getElementById("btnGoToNextStage")?.addEventListener("click", () => {
+      document.getElementById("examResultView").style.display = "none";
+      document.getElementById("examActiveView").style.display = "none";
+      document.getElementById("examSelectView").style.display = "block";
+      this.switchTab("tabRoadmap");
+    });
   }
 
   renderExamSuitesList() {
@@ -1028,6 +1037,56 @@ class AppController {
     document.getElementById("certExamStatus").style.color = result.isPassed ? "var(--success)" : "var(--danger)";
     document.getElementById("certExamHash").textContent = result.certCode;
 
+    // Xác định xem đề thi này có thuộc chặng nào không
+    const stageKey = this.activeExam?.exam?.stageKey || result.stageKey || "";
+    result.stageKey = stageKey;
+
+    let promoResult = null;
+    const alertEl = document.getElementById("examGraduationAlert");
+    const nextStageBtn = document.getElementById("btnGoToNextStage");
+
+    if (result.isPassed && stageKey) {
+      promoResult = this.userManager.promoteStage(stageKey);
+      if (alertEl) {
+        alertEl.style.display = "block";
+        alertEl.innerHTML = `
+          <div class="graduation-banner">
+            <div style="font-size: 2.8rem; margin-bottom: 8px;">🎉 🏆 🎓</div>
+            <h3 style="margin: 0 0 8px 0; color: var(--success); font-size: 1.35rem; font-weight: 900;">
+              XUẤT SẮC VƯỢT QUA BÀI TEST ĐÁNH GIÁ NÂNG CẤP!
+            </h3>
+            <p style="margin: 0 0 14px 0; font-size: 0.95rem; color: var(--ink-secondary); line-height: 1.6;">
+              ${promoResult?.graduatedAll ? 'Xin chúc mừng! Bạn đã hoàn thành xuất sắc toàn bộ các chặng trong lộ trình Tiếng Trung Học Thuật Chuyên Sâu.' : `Bạn đã mở khóa thành công <strong>${promoResult?.nextStageName}</strong> và được cộng thưởng <strong>+100 XP</strong> danh dự!`}
+            </p>
+          </div>
+        `;
+      }
+      if (nextStageBtn) {
+        nextStageBtn.style.display = "inline-block";
+        nextStageBtn.textContent = promoResult?.graduatedAll ? "🎓 Xem Lại Toàn Bộ Lộ Trình" : `🚀 Đi Đến ${promoResult?.nextStageName}`;
+      }
+      this.showToast(`Chúc mừng! Bạn đã vượt qua bài test và được nâng cấp lộ trình!`);
+    } else if (!result.isPassed && stageKey) {
+      if (alertEl) {
+        alertEl.style.display = "block";
+        alertEl.innerHTML = `
+          <div style="background: rgba(239, 68, 68, 0.1); border: 2px solid var(--danger); border-radius: var(--radius-lg); padding: 20px 24px; text-align: center;">
+            <div style="font-size: 2rem; margin-bottom: 6px;">⚠️</div>
+            <h3 style="margin: 0 0 6px 0; color: var(--danger); font-size: 1.2rem; font-weight: 900;">
+              CHƯA ĐẠT ĐIỂM NÂNG CẤP LỘ TRÌNH (CẦN >= 70%)
+            </h3>
+            <p style="margin: 0; font-size: 0.9rem; color: var(--ink-secondary); line-height: 1.5;">
+              Điểm số hiện tại của bạn là <strong>${result.scorePercent}%</strong>. Đừng lo lắng! Hãy xem lại giải thích chi tiết các câu sai bên dưới, ôn tập lại bài học rồi làm lại bài test để nâng cấp nhé.
+            </p>
+          </div>
+        `;
+      }
+      if (nextStageBtn) nextStageBtn.style.display = "none";
+    } else {
+      if (alertEl) alertEl.style.display = "none";
+      if (nextStageBtn) nextStageBtn.style.display = "none";
+    }
+
     this.userManager.recordExam(result);
     this.updateUserUI();
 
@@ -1067,18 +1126,10 @@ class AppController {
       const lesson = ROADMAP_LESSONS[stageKey];
       if (!lesson) return;
 
-      const reward = lesson.xpReward || 40;
-      this.userManager.addXP(reward, `Hoàn thành bài học: ${lesson.title}`);
-
-      const user = this.userManager.currentUser;
-      if (user && user.roadmap && user.roadmap[stageKey]) {
-        user.roadmap[stageKey].progress = Math.min(100, (user.roadmap[stageKey].progress || 0) + 50);
-        this.userManager.saveUsers();
-      }
-
+      const stage = this.userManager.completeStageLesson(stageKey);
       this.updateUserUI();
       if (modal) modal.style.display = "none";
-      this.showToast(`Xuất sắc! Bạn đã hoàn thành bài học và nhận được +${reward} XP 🎉`);
+      this.showToast(`Xuất sắc! Bạn đã hoàn thành toàn bộ bài tập của [${stage?.name || 'chặng này'}] 🎉. Trạng thái bài test nâng cấp đã sẵn sàng!`);
     });
   }
 
@@ -1255,19 +1306,23 @@ class AppController {
 
     document.getElementById("profileBigAvatar").textContent = user.avatar;
     document.getElementById("profileBigName").textContent = user.name;
-    const targets = {
-      academic: "Học thuật & Nghiên cứu Khoa học",
-      "hsk1-2": "HSK 1-2 Căn bản",
-      "hsk3-4": "HSK 3-4 Trung cấp",
-      "hsk5-6": "HSK 5-6 Nâng cao"
-    };
-    document.getElementById("profileBigTarget").textContent = `Mục tiêu: ${targets[user.target] || user.target}`;
+    const curTxt = LEVEL_LABELS[user.currentLevel] || user.currentLevel;
+    const tgtTxt = TARGET_LABELS[user.targetLevel] || user.targetLevel;
+    document.getElementById("profileBigTarget").textContent = `Trình độ: ${curTxt} ➔ Mục tiêu: ${tgtTxt}`;
     document.getElementById("profileCreatedAt").textContent = user.createdAt || "Hôm nay";
 
     const lvl = this.userManager.getLevelInfo();
     document.getElementById("profileLevelBadge").textContent = `Cấp ${lvl.level}: ${lvl.title}`;
     document.getElementById("profileXPVal").textContent = `${lvl.currentXP} / ${lvl.nextLevelXP} XP`;
     document.getElementById("profileProgressBar").style.width = `${lvl.progressPercent}%`;
+
+    const statusEl = document.getElementById("profileRoadmapStatus");
+    if (statusEl && user.roadmap) {
+      const unlockedStages = Object.values(user.roadmap).filter(s => s.unlocked);
+      const activeStage = unlockedStages[unlockedStages.length - 1] || user.roadmap.stage1;
+      const statusText = activeStage.passedTest ? "Đã Tốt Nghiệp Chặng" : (activeStage.readyForTest ? "Đã sẵn sàng thi nâng cấp" : `${activeStage.progress}% tiến độ`);
+      statusEl.innerHTML = `Đang học tại <strong>${activeStage.name}</strong> (${statusText}). Vượt qua các bài test nâng cấp để mở khóa chặng tiếp theo.`;
+    }
 
     const historyBody = document.getElementById("profileExamHistoryTableBody");
     if (historyBody) {

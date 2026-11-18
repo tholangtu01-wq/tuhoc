@@ -12,32 +12,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@500;700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/styles.css?v=20261119v4">
 </head>
 <body>
-
-  <!-- ==================== ACCESS GATE LOCK SCREEN ==================== -->
-  <div id="accessGateOverlay" class="access-gate-overlay" style="display: none;">
-    <div class="access-gate-card">
-      <div class="brand-seal kaiti-font" style="margin: 0 auto 16px; width: 56px; height: 56px; font-size: 32px;">漢</div>
-      <h2 style="font-size: 1.5rem; font-weight: 900; margin-bottom: 6px; letter-spacing: -0.02em;">tiengtrungdema</h2>
-      <p style="font-size: 0.88rem; color: var(--ink-muted); margin-bottom: 24px; line-height: 1.5;">
-        Ung dung hoc tap bao mat noi bo.<br>Vui long nhap Ma Truy Cap (Access Key) do quan tri vien cung cap de su dung:
-      </p>
-
-      <form id="accessGateForm">
-        <div class="form-group">
-          <input type="password" id="inputAccessKey" class="form-input" placeholder="Nhap ma truy cap tai day..." required autofocus style="text-align: center; font-size: 1.1rem; letter-spacing: 2px;">
-        </div>
-        <div id="accessGateError" style="display: none; color: var(--danger); font-size: 0.82rem; font-weight: 700; margin-bottom: 14px;">
-          Ma truy cap khong chinh xac. Vui long lien he nguoi quan tri!
-        </div>
-        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 1rem;">
-          Mo Khoa Ung Dung
-        </button>
-      </form>
-    </div>
-  </div>
 
   <!-- ==================== TOPBAR ==================== -->
   <header class="topbar">
@@ -73,10 +50,6 @@
           📖 Hướng Dẫn
         </button>
 
-        <button type="button" id="btnLockApp" class="btn btn-secondary btn-sm" title="Khóa ứng dụng bảo mật">
-          Khóa App
-        </button>
-
         <button type="button" id="btnToggleTheme" class="btn btn-secondary btn-sm" title="Chuyển chế độ Sáng / Tối">
           Giao diện
         </button>
@@ -106,7 +79,7 @@
         Phòng Thi CBT HSK
       </button>
       <button type="button" class="tab-btn" data-tab="tabProfile" role="tab" aria-selected="false">
-        Hồ Sơ &amp; Bảo Mật
+        Hồ Sơ &amp; Lịch Sử Học
       </button>
     </div>
   </nav>
@@ -133,6 +106,36 @@
           <button type="button" class="btn btn-primary" id="btnQuickReviewFromRoadmap">
             Bắt Đầu Ôn Tập (+10 XP)
           </button>
+        </div>
+      </div>
+
+      <!-- HƯỚNG DẪN TỪNG BƯỚC ĐI THEO LỘ TRÌNH -->
+      <div class="roadmap-guide-card">
+        <div class="roadmap-guide-header">
+          <span style="font-size: 1.3rem;">🧭</span>
+          <h3 style="font-size: 1.05rem; font-weight: 800; margin: 0;">Hướng Dẫn Từng Bước Đi Theo Lộ Trình Cá Nhân Hóa Của Bạn</h3>
+        </div>
+        <div class="roadmap-guide-steps">
+          <div class="guide-step-card">
+            <div class="step-badge">Bước 1</div>
+            <div class="step-title">Học Bài Học Chặng</div>
+            <p class="step-desc">Nhấn <strong>"Học Ngay"</strong> ở chặng đang mở để học kiến thức ngữ âm, ngữ pháp và làm bài tập trắc nghiệm.</p>
+          </div>
+          <div class="guide-step-card">
+            <div class="step-badge">Bước 2</div>
+            <div class="step-title">Luyện Viết &amp; Phát Âm</div>
+            <p class="step-desc">Vào tab Luyện Viết (nét bút viết tay chuẩn) và Phát Âm AI để tăng phản xạ nghe nói thực tế.</p>
+          </div>
+          <div class="guide-step-card">
+            <div class="step-badge">Bước 3</div>
+            <div class="step-title">Hoàn Thành Bài Tập Chặng</div>
+            <p class="step-desc">Hoàn thành bài tập trong bài học để đạt 100% tiến độ và kích hoạt trạng thái sẵn sàng thi nâng cấp.</p>
+          </div>
+          <div class="guide-step-card highlight">
+            <div class="step-badge" style="background: var(--primary); color: #fff;">Bước 4</div>
+            <div class="step-title" style="color: var(--primary);">Vượt Qua Bài Test Nâng Cấp</div>
+            <p class="step-desc">Làm <strong>Bài Test Nâng Cấp (Checkpoint Test)</strong> đạt từ 70% trở lên để hệ thống tự động kiểm tra và nâng cấp lộ trình của bạn lên chặng cao hơn!</p>
+          </div>
         </div>
       </div>
 
@@ -466,12 +469,17 @@
             </div>
           </div>
 
+          <div id="examGraduationAlert" style="display: none; max-width: 720px; margin: 0 auto 20px;"></div>
+
           <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
             <button type="button" class="btn btn-secondary" onclick="window.print()">
               In Chứng Nhận / Lưu PDF
             </button>
-            <button type="button" id="btnBackToExams" class="btn btn-primary">
+            <button type="button" id="btnBackToExams" class="btn btn-secondary">
               Trở Về Danh Sách Đề Thi
+            </button>
+            <button type="button" id="btnGoToNextStage" class="btn btn-primary" style="display: none;">
+              🚀 Tiếp Tục Chặng Lộ Trình Mới
             </button>
           </div>
         </div>
@@ -537,33 +545,29 @@
           </div>
         </div>
 
-        <!-- CÀI ĐẶT & BẢO MẬT HỒ SƠ -->
+        <!-- QUẢN LÝ HỒ SƠ & LỘ TRÌNH -->
         <div class="writing-sidebar">
-          <h3 style="font-weight: 800; font-size: 1.15rem; margin-bottom: 14px;">Bảo Mật &amp; Quản Lý</h3>
+          <h3 style="font-weight: 800; font-size: 1.15rem; margin-bottom: 14px;">Quản Lý Hồ Sơ &amp; Lộ Trình</h3>
           
           <div style="background: var(--surface-alt); border-radius: var(--radius-md); padding: 14px; margin-bottom: 16px;">
-            <div style="font-size: 0.85rem; font-weight: 800; margin-bottom: 4px;">Mã Truy Cập Hiện Tại:</div>
-            <div style="font-size: 0.8rem; color: var(--ink-muted); margin-bottom: 8px;">Cung cấp mã này cho người bạn muốn cho phép học:</div>
-            <div style="display: flex; gap: 6px; align-items: center;">
-              <input type="text" id="displayCurrentAccessKey" class="form-input" readonly style="font-weight: 800; color: var(--primary); padding: 6px 10px; font-size: 0.9rem;">
-              <button type="button" id="btnChangeAccessKey" class="btn btn-secondary btn-sm" title="Đổi mã mới">
-                Đổi Mã
-              </button>
+            <div style="font-size: 0.85rem; font-weight: 800; margin-bottom: 4px;">Trạng Thái Lộ Trình:</div>
+            <div style="font-size: 0.82rem; color: var(--ink-secondary); line-height: 1.5;" id="profileRoadmapStatus">
+              Đang học theo lộ trình cá nhân hóa. Hoàn thành bài tập và vượt qua các bài test nâng cấp để mở khóa chặng cao hơn.
             </div>
           </div>
 
           <div style="display: flex; flex-direction: column; gap: 10px;">
-            <button type="button" id="btnCreateNewUserFromSidebar" class="btn btn-primary btn-sm">
-              Tạo Hồ Sơ Học Viên Mới
+            <button type="button" id="btnEditUserProfile" class="btn btn-secondary btn-sm">
+              ⚙️ Đổi Trình Độ &amp; Mục Tiêu Học
             </button>
-            <button type="button" id="btnLockAppFromProfile" class="btn btn-secondary btn-sm" style="color: var(--danger);">
-              Khóa Ứng Dụng Ngay
+            <button type="button" id="btnCreateNewUserFromSidebar" class="btn btn-primary btn-sm">
+              ➕ Tạo Thêm Hồ Sơ Học Viên Mới
             </button>
             <button type="button" id="btnExportUserBackup" class="btn btn-secondary btn-sm">
-              Xuất Dữ Liệu Học Tập (JSON)
+              💾 Xuất Dữ Liệu Học Tập (JSON)
             </button>
             <label class="btn btn-secondary btn-sm" style="margin: 0; cursor: pointer; text-align: center;">
-              Nhập Dữ Liệu Khôi Phục
+              📥 Nhập Dữ Liệu Khôi Phục
               <input type="file" id="btnImportUserBackupInput" accept=".json" style="display: none;">
             </label>
           </div>
@@ -573,34 +577,44 @@
 
   </main>
 
-  <!-- ==================== ONBOARDING MODAL (YÊU CẦU TÊN NGƯỜI DÙNG) ==================== -->
+  <!-- ==================== ONBOARDING MODAL (THIẾT LẬP HỒ SƠ & LỘ TRÌNH) ==================== -->
   <div id="onboardingModal" class="modal-overlay" style="display: none;">
     <div class="modal-card">
       <div style="text-align: center; margin-bottom: 20px;">
         <div class="brand-seal kaiti-font" style="margin: 0 auto 12px; width: 50px; height: 50px; font-size: 28px;">漢</div>
         <h2 style="font-size: 1.45rem; font-weight: 900; margin-bottom: 6px;">Chào Mừng Đến tiengtrungdema</h2>
-        <p style="font-size: 0.88rem; color: var(--ink-muted);">
-          Vui lòng nhập tên của bạn để tạo hồ sơ học tập và lộ trình cá nhân hóa riêng biệt:
+        <p style="font-size: 0.88rem; color: var(--ink-muted); line-height: 1.5;">
+          Nhập tên của bạn, chọn trình độ hiện tại và mục tiêu mong muốn để hệ thống tự động khởi tạo lộ trình học cá nhân hóa riêng biệt:
         </p>
       </div>
 
       <form id="onboardingForm">
-        <div class="form-group">
+        <div class="form-group" style="margin-bottom: 14px;">
           <label class="form-label" for="inputUserName">Họ và Tên hoặc Biệt danh của bạn:</label>
-          <input type="text" id="inputUserName" class="form-input" placeholder="Ví dụ: Minh Anh, Hoàng Long..." required autofocus>
+          <input type="text" id="inputUserName" class="form-input" placeholder="Ví dụ: Minh Anh, Hoàng Long..." value="Học Viên" required autofocus>
         </div>
 
-        <div class="form-group">
-          <label class="form-label">Chọn Mục Tiêu Học Tập:</label>
-          <select id="inputUserTarget" class="form-input">
-            <option value="academic" selected>Từ vựng Học thuật Chuyên ngành &amp; Nghiên cứu khoa học</option>
-            <option value="hsk1-2">HSK 1 - 2 (Căn bản cho người mới bắt đầu)</option>
-            <option value="hsk3-4">HSK 3 - 4 (Trung cấp &amp; Giao tiếp nâng cao)</option>
-            <option value="hsk5-6">HSK 5 - 6 (Cao cấp &amp; Văn bản báo chí)</option>
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label class="form-label" for="inputCurrentLevel">Trình độ tiếng Trung hiện tại của bạn:</label>
+          <select id="inputCurrentLevel" class="form-input">
+            <option value="level_0" selected>1. Mới bắt đầu (Bắt đầu từ con số 0 / Chưa biết gì)</option>
+            <option value="level_hsk1">2. Căn bản HSK 1 - 2 (Đã biết Pinyin &amp; ~300 từ vựng)</option>
+            <option value="level_hsk3">3. Trung cấp HSK 3 - 4 (Giao tiếp khá &amp; ~1200 từ vựng)</option>
+            <option value="level_hsk5">4. Cao cấp HSK 5 (Đọc hiểu báo chí &amp; ~2500 từ vựng)</option>
           </select>
         </div>
 
-        <div class="form-group">
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label class="form-label" for="inputTargetLevel">Mức học mong muốn (Mục tiêu của bạn):</label>
+          <select id="inputTargetLevel" class="form-input">
+            <option value="target_academic" selected>Học thuật &amp; Luận văn Chuyên ngành (IMRaD)</option>
+            <option value="target_hsk2">HSK 2 — Giao tiếp cơ bản hàng ngày</option>
+            <option value="target_hsk4">HSK 4 — Giao tiếp nâng cao &amp; Phỏng vấn xin việc</option>
+            <option value="target_hsk6">HSK 6 — Cao cấp &amp; Đọc tài liệu báo chí lưu loát</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 18px;">
           <label class="form-label">Chọn Biểu Tượng Đại Diện (Avatar):</label>
           <div class="avatar-selector-grid">
             <button type="button" class="avatar-choice-btn selected" data-avatar="👨‍🎓">👨‍🎓</button>
@@ -612,8 +626,8 @@
           </div>
         </div>
 
-        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 1rem;">
-          Kích Hoạt Lộ Trình Của Tôi
+        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 13px; font-size: 1rem; font-weight: 700;">
+          🚀 Khởi Tạo Lộ Trình &amp; Vào Học Ngay
         </button>
       </form>
     </div>
@@ -692,14 +706,15 @@
   <div id="toastContainer"></div>
 
   <!-- CORE CONTROLLER -->
-  <script type="module" src="js/app.js"></script>
+  <script type="module" src="js/app.js?v=20261119v4"></script>
 
   <!-- SERVICE WORKER REGISTRATION (OFFLINE PWA) -->
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').then(reg => {
+        navigator.serviceWorker.register('./sw.js?v=20261119v4').then(reg => {
           console.log('tiengtrungdema ServiceWorker active:', reg.scope);
+          if (reg.update) reg.update();
         }).catch(err => {
           console.log('tiengtrungdema ServiceWorker error:', err);
         });

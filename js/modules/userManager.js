@@ -1,29 +1,171 @@
 /**
- * User & Multi-Profile Manager for Hanzii Pro
- * Quản lý đa người dùng, lộ trình học cá nhân hóa và lịch sử học tập riêng biệt
+ * User & Multi-Profile Manager for tiengtrungdema
+ * Quản lý người dùng, lộ trình học cá nhân hóa theo trình độ hiện tại & mục tiêu, và bài test nâng cấp
  */
 
-const USERS_STORAGE_KEY = "hanzii_users_v2";
-const CURRENT_USER_ID_KEY = "hanzii_current_user_id_v2";
+const USERS_STORAGE_KEY = "tiengtrungdema_users_v3";
+const CURRENT_USER_ID_KEY = "tiengtrungdema_current_user_id_v3";
+
+export const LEVEL_LABELS = {
+  level_0: "Mới bắt đầu (Bắt đầu từ con số 0)",
+  level_hsk1: "Căn bản (HSK 1 - 2)",
+  level_hsk3: "Trung cấp (HSK 3 - 4)",
+  level_hsk5: "Cao cấp (HSK 5)",
+  level_academic: "Học thuật & Luận văn (HSK 6)"
+};
+
+export const TARGET_LABELS = {
+  target_hsk2: "HSK 2 (Giao tiếp thường nhật)",
+  target_hsk4: "HSK 4 (Giao tiếp công việc & phỏng vấn)",
+  target_hsk6: "HSK 6 (Cao cấp & Báo chí lưu loát)",
+  target_academic: "Học thuật & Luận văn Chuyên ngành (IMRaD)",
+  academic: "Học thuật & Luận văn Chuyên ngành (IMRaD)",
+  "hsk1-2": "HSK 1 - 2 (Căn bản)",
+  "hsk3-4": "HSK 3 - 4 (Trung cấp)",
+  "hsk5-6": "HSK 5 - 6 (Cao cấp)"
+};
 
 export class UserManager {
   constructor() {
     this.users = this.loadUsers();
     this.currentUserId = this.loadCurrentUserId();
     
-    // Nếu chưa có người dùng nào, tạo sẵn hoặc yêu cầu tạo mới
+    // Nếu chưa có người dùng nào, tạo sẵn học viên mặc định
     if (this.users.length === 0) {
-      this.currentUser = null;
+      const defUser = this.createDefaultUser("Học Viên", "level_0", "target_academic", "👨‍🎓");
+      this.users = [defUser];
+      this.currentUser = defUser;
+      this.currentUserId = defUser.id;
+      this.saveUsers();
+      this.saveCurrentUserId();
     } else {
       this.currentUser = this.users.find(u => u.id === this.currentUserId) || this.users[0];
-      this.currentUserId = this.currentUser.id;
+      this.currentUserId = this.currentUser ? this.currentUser.id : "";
       this.saveCurrentUserId();
     }
   }
 
+  createDefaultUser(name = "Học Viên", currentLevel = "level_0", targetLevel = "target_academic", avatar = "👨‍🎓") {
+    const today = new Date().toISOString().slice(0, 10);
+    const nowStr = new Date().toLocaleString("vi-VN");
+
+    const roadmap = {
+      stage1: {
+        key: "stage1",
+        name: "Chặng 1: Nhập Môn Pinyin & 214 Bộ Thủ",
+        desc: "4 thanh điệu, quy tắc biến điệu ngữ âm và 214 bộ thủ Hán tự nền tảng",
+        progress: 0,
+        unlocked: true,
+        completedLesson: false,
+        readyForTest: false,
+        passedTest: false,
+        checkpointExamId: "exam-stage1"
+      },
+      stage2: {
+        key: "stage2",
+        name: "Chặng 2: Nền Tảng HSK 1-2 & Giao Tiếp",
+        desc: "Mẫu câu giao tiếp hàng ngày, ngữ pháp chữ 是, 有/没有 và 300 từ vựng",
+        progress: 0,
+        unlocked: false,
+        completedLesson: false,
+        readyForTest: false,
+        passedTest: false,
+        checkpointExamId: "exam-stage2"
+      },
+      stage3: {
+        key: "stage3",
+        name: "Chặng 3: Trung Cấp HSK 3-4 & Ngữ Pháp",
+        desc: "Đoạn văn trung cấp, câu chữ 把, bổ ngữ kết quả và liên từ logic",
+        progress: 0,
+        unlocked: false,
+        completedLesson: false,
+        readyForTest: false,
+        passedTest: false,
+        checkpointExamId: "exam-stage3"
+      },
+      stage4: {
+        key: "stage4",
+        name: "Chặng 4: Cao Cấp HSK 5 & Đọc Báo Chí",
+        desc: "Phân tích câu phức nhiều tầng định ngữ, cấu trúc nghị luận xã hội",
+        progress: 0,
+        unlocked: false,
+        completedLesson: false,
+        readyForTest: false,
+        passedTest: false,
+        checkpointExamId: "exam-stage4"
+      },
+      stage5: {
+        key: "stage5",
+        name: "Chặng 5: Học Thuật & Luận Văn Chuyên Sâu",
+        desc: "Cấu trúc luận văn IMRaD chuẩn quốc tế, bảo vệ khóa luận và thuật ngữ nghiên cứu",
+        progress: 0,
+        unlocked: false,
+        completedLesson: false,
+        readyForTest: false,
+        passedTest: false,
+        checkpointExamId: "exam-stage5"
+      }
+    };
+
+    // Tự động thích ứng lộ trình dựa trên Trình độ hiện tại (currentLevel)
+    if (currentLevel === "level_hsk1" || currentLevel === "hsk1-2") {
+      roadmap.stage1.unlocked = true;
+      roadmap.stage1.progress = 100;
+      roadmap.stage1.completedLesson = true;
+      roadmap.stage1.passedTest = true;
+      roadmap.stage2.unlocked = true;
+    } else if (currentLevel === "level_hsk3" || currentLevel === "hsk3-4") {
+      roadmap.stage1.unlocked = true;
+      roadmap.stage1.progress = 100;
+      roadmap.stage1.passedTest = true;
+      roadmap.stage2.unlocked = true;
+      roadmap.stage2.progress = 100;
+      roadmap.stage2.passedTest = true;
+      roadmap.stage3.unlocked = true;
+    } else if (currentLevel === "level_hsk5" || currentLevel === "hsk5-6") {
+      roadmap.stage1.unlocked = true;
+      roadmap.stage1.progress = 100;
+      roadmap.stage1.passedTest = true;
+      roadmap.stage2.unlocked = true;
+      roadmap.stage2.progress = 100;
+      roadmap.stage2.passedTest = true;
+      roadmap.stage3.unlocked = true;
+      roadmap.stage3.progress = 100;
+      roadmap.stage3.passedTest = true;
+      roadmap.stage4.unlocked = true;
+    }
+
+    const curLabel = LEVEL_LABELS[currentLevel] || currentLevel;
+    const tgtLabel = TARGET_LABELS[targetLevel] || targetLevel;
+
+    return {
+      id: "user_" + Date.now() + "_" + Math.random().toString(36).substring(2, 6),
+      name: (name || "Học Viên").trim(),
+      currentLevel: currentLevel || "level_0",
+      targetLevel: targetLevel || "target_academic",
+      target: targetLevel || "target_academic",
+      avatar: avatar || "👨‍🎓",
+      createdAt: nowStr,
+      xp: 50,
+      streak: 1,
+      lastActiveDate: today,
+      roadmap,
+      srsCards: {},
+      notebook: [],
+      examHistory: [],
+      activityLogs: [
+        {
+          timestamp: nowStr,
+          action: `Khởi tạo lộ trình từ [${curLabel}] hướng đến [${tgtLabel}]`,
+          xpEarned: 50
+        }
+      ]
+    };
+  }
+
   loadUsers() {
     try {
-      const data = localStorage.getItem(USERS_STORAGE_KEY);
+      const data = localStorage.getItem(USERS_STORAGE_KEY) || localStorage.getItem("hanzii_users_v2");
       return data ? JSON.parse(data) : [];
     } catch (e) {
       console.warn("Lỗi khi tải danh sách người dùng:", e);
@@ -40,7 +182,7 @@ export class UserManager {
   }
 
   loadCurrentUserId() {
-    return localStorage.getItem(CURRENT_USER_ID_KEY) || "";
+    return localStorage.getItem(CURRENT_USER_ID_KEY) || localStorage.getItem("hanzii_current_user_id_v2") || "";
   }
 
   saveCurrentUserId() {
@@ -51,45 +193,35 @@ export class UserManager {
 
   /**
    * Tạo một hồ sơ người học mới với lộ trình cá nhân hóa
+   * Hỗ trợ cả hai cú pháp: (name, currentLevel, targetLevel, avatar) hoặc (name, targetLevel, avatar)
    */
-  createUser(name, target = "academic", avatar = "👨‍🎓") {
-    const today = new Date().toISOString().slice(0, 10);
-    const nowStr = new Date().toLocaleString("vi-VN");
-    
-    const newUser = {
-      id: "user_" + Date.now() + "_" + Math.random().toString(36).substring(2, 6),
-      name: name.trim(),
-      target, // 'academic', 'hsk1-2', 'hsk3-4', 'hsk5-6'
-      avatar,
-      createdAt: nowStr,
-      xp: 0,
-      streak: 1,
-      lastActiveDate: today,
-      // Lộ trình học 5 chặng cá nhân hóa
-      roadmap: {
-        stage1: { name: "Chặng 1: Nhập Môn Pinyin & 214 Bộ Thủ", progress: 0, unlocked: true },
-        stage2: { name: "Chặng 2: Nền Tảng HSK 1-2 & Giao Tiếp", progress: 0, unlocked: false },
-        stage3: { name: "Chặng 3: Trung Cấp HSK 3-4 & Ngữ Pháp", progress: 0, unlocked: false },
-        stage4: { name: "Chặng 4: Cao Cấp HSK 5 & Đọc Báo Chí", progress: 0, unlocked: false },
-        stage5: { name: "Chặng 5: Học Thuật & Luận Văn Chuyên Sâu", progress: 0, unlocked: false }
-      },
-      // Thẻ SRS riêng biệt
-      srsCards: {},
-      // Sổ tay từ vựng yêu thích
-      notebook: [],
-      // Lịch sử thi CBT HSK
-      examHistory: [],
-      // Nhật ký hoạt động chi tiết
-      activityLogs: [
-        {
-          timestamp: nowStr,
-          action: "Khởi tạo tài khoản học viên và kích hoạt Lộ trình học",
-          xpEarned: 50
-        }
-      ]
-    };
+  createUser(name, currentLevelOrTarget = "level_0", targetLevel = "target_academic", avatar = "👨‍🎓") {
+    const trimmedName = (name || "Học Viên").trim();
+    let curLevel = "level_0";
+    let tgtLevel = "target_academic";
+    let avt = avatar;
 
-    newUser.xp += 50; // Thưởng 50 XP khởi đầu
+    if (typeof currentLevelOrTarget === "string" && currentLevelOrTarget.startsWith("level_")) {
+      curLevel = currentLevelOrTarget;
+      tgtLevel = targetLevel || "target_academic";
+      avt = avatar || "👨‍🎓";
+    } else {
+      tgtLevel = currentLevelOrTarget || "target_academic";
+      avt = (typeof targetLevel === "string" && targetLevel.length <= 4) ? targetLevel : "👨‍🎓";
+    }
+
+    // Nếu hồ sơ duy nhất hiện tại là "Học Viên" mặc định, cập nhật trực tiếp
+    if (this.users.length === 1 && (this.users[0].name === "Học Viên" || this.users[0].name === "Đang tải...") && this.users[0].examHistory.length === 0) {
+      const updated = this.createDefaultUser(trimmedName, curLevel, tgtLevel, avt);
+      this.users[0] = { ...updated, id: this.users[0].id };
+      this.currentUser = this.users[0];
+      this.currentUserId = this.users[0].id;
+      this.saveUsers();
+      this.saveCurrentUserId();
+      return this.currentUser;
+    }
+
+    const newUser = this.createDefaultUser(trimmedName, curLevel, tgtLevel, avt);
     this.users.push(newUser);
     this.saveUsers();
     this.switchUser(newUser.id);
@@ -159,7 +291,6 @@ export class UserManager {
       xpEarned: amount
     });
 
-    // Giới hạn tối đa 50 nhật ký gần nhất
     if (this.currentUser.activityLogs.length > 50) {
       this.currentUser.activityLogs.pop();
     }
@@ -168,39 +299,77 @@ export class UserManager {
     this.saveUsers();
   }
 
-  /**
-   * Cập nhật tiến độ mở khóa các chặng lộ trình
-   */
   checkRoadmapProgression() {
-    if (!this.currentUser) return;
+    if (!this.currentUser || !this.currentUser.roadmap) return;
     const xp = this.currentUser.xp;
     const rm = this.currentUser.roadmap;
+    if (xp >= 150 && rm.stage2) rm.stage2.unlocked = true;
+    if (xp >= 400 && rm.stage3) rm.stage3.unlocked = true;
+    if (xp >= 750 && rm.stage4) rm.stage4.unlocked = true;
+    if (xp >= 1200 && rm.stage5) rm.stage5.unlocked = true;
+  }
 
-    // Chặng 1: 0 - 150 XP
-    rm.stage1.progress = Math.min(100, Math.round((xp / 150) * 100));
-    
-    // Mở khóa Chặng 2 khi qua 150 XP
-    if (xp >= 150) {
-      rm.stage2.unlocked = true;
-      rm.stage2.progress = Math.min(100, Math.round(((xp - 150) / 250) * 100));
-    }
-    
-    // Mở khóa Chặng 3 khi qua 400 XP
-    if (xp >= 400) {
-      rm.stage3.unlocked = true;
-      rm.stage3.progress = Math.min(100, Math.round(((xp - 400) / 350) * 100));
-    }
+  /**
+   * Hoàn thành bài học lý thuyết & bài tập của một chặng trong lộ trình
+   */
+  completeStageLesson(stageKey) {
+    if (!this.currentUser || !this.currentUser.roadmap || !this.currentUser.roadmap[stageKey]) return null;
+    const stage = this.currentUser.roadmap[stageKey];
+    stage.completedLesson = true;
+    stage.progress = 100;
+    stage.readyForTest = true;
+    this.addXP(40, `Hoàn thành xuất sắc bài tập [${stage.name}]`);
+    this.saveUsers();
+    return stage;
+  }
 
-    // Mở khóa Chặng 4 khi qua 750 XP
-    if (xp >= 750) {
-      rm.stage4.unlocked = true;
-      rm.stage4.progress = Math.min(100, Math.round(((xp - 750) / 450) * 100));
-    }
+  /**
+   * Nâng cấp lộ trình khi người dùng vượt qua bài test kiểm tra (Checkpoint Test)
+   */
+  promoteStage(stageKey) {
+    if (!this.currentUser || !this.currentUser.roadmap) return null;
+    const stageKeys = ["stage1", "stage2", "stage3", "stage4", "stage5"];
+    const idx = stageKeys.indexOf(stageKey);
+    if (idx === -1) return null;
 
-    // Mở khóa Chặng 5 khi qua 1200 XP
-    if (xp >= 1200) {
-      rm.stage5.unlocked = true;
-      rm.stage5.progress = Math.min(100, Math.round(((xp - 1200) / 600) * 100));
+    const currentStage = this.currentUser.roadmap[stageKey];
+    currentStage.passedTest = true;
+    currentStage.graduated = true;
+    currentStage.progress = 100;
+
+    const nextIdx = idx + 1;
+    if (nextIdx < stageKeys.length) {
+      const nextKey = stageKeys[nextIdx];
+      const nextStage = this.currentUser.roadmap[nextKey];
+      nextStage.unlocked = true;
+
+      // Nâng cấp trình độ hiện tại
+      const nextLevelMap = {
+        stage2: "level_hsk1",
+        stage3: "level_hsk3",
+        stage4: "level_hsk5",
+        stage5: "level_academic"
+      };
+      if (nextLevelMap[nextKey]) {
+        this.currentUser.currentLevel = nextLevelMap[nextKey];
+      }
+
+      this.addXP(100, `🎉 Vượt qua bài test nâng cấp! Đã mở khóa [${nextStage.name}]`);
+      this.saveUsers();
+      return {
+        graduatedAll: false,
+        nextStageKey: nextKey,
+        nextStageName: nextStage.name
+      };
+    } else {
+      // Đã tốt nghiệp toàn bộ lộ trình
+      this.currentUser.currentLevel = "level_academic";
+      this.addXP(200, `🎓 XUẤT SẮC TỐT NGHIỆP TOÀN BỘ LỘ TRÌNH TIẾNG TRUNG HỌC THUẬT!`);
+      this.saveUsers();
+      return {
+        graduatedAll: true,
+        message: "Chúc mừng bạn đã hoàn thành trọn vẹn lộ trình học tập chuyên sâu!"
+      };
     }
   }
 
@@ -211,6 +380,7 @@ export class UserManager {
     if (!this.currentUser) return;
     const record = {
       examTitle: examResult.examTitle,
+      stageKey: examResult.stageKey || "",
       level: examResult.level,
       scorePercent: examResult.scorePercent,
       correctCount: examResult.correctCount,
@@ -221,7 +391,7 @@ export class UserManager {
     };
 
     this.currentUser.examHistory.unshift(record);
-    this.addXP(examResult.isPassed ? 80 : 30, `Hoàn thành đề thi [${examResult.examTitle}] với điểm số ${examResult.scorePercent}%`);
+    this.addXP(examResult.isPassed ? 80 : 30, `Hoàn thành bài test [${examResult.examTitle}] (${examResult.scorePercent}%)`);
     this.saveUsers();
   }
 

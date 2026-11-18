@@ -83,4 +83,27 @@ const sim = speechEngine.calculateSimilarity("研究", "研究");
 assert.strictEqual(sim, 1.0);
 console.log("   -> [PASS] So khớp giọng nói chuẩn xác");
 
-console.log("=== TẤT CẢ 4 BỘ KIỂM THỬ ĐỀU ĐẠT CHUẨN 100% ===");
+// 5. Kiểm thử Bài Học Chặng, Checkpoint Exams & Nâng Cấp Lộ Trình
+console.log("5. Kiểm tra tính năng Hoàn thành Bài Học & Nâng Cấp Lộ Trình (Checkpoint Exam)...");
+assert(EXAM_SUITES.length >= 5, "Cần có đủ 5 đề thi cho 5 chặng");
+assert(EXAM_SUITES.find(e => e.stageKey === "stage1"), "Thiếu đề thi cho chặng 1");
+assert(EXAM_SUITES.find(e => e.stageKey === "stage5"), "Thiếu đề thi cho chặng 5");
+
+const testLearner = userManager.createUser("Lê Văn Nam", "level_0", "target_academic", "🧑‍🏫");
+assert.strictEqual(testLearner.roadmap.stage1.unlocked, true);
+assert.strictEqual(testLearner.roadmap.stage2.unlocked, false);
+
+// Hoàn thành bài học chặng 1
+userManager.completeStageLesson("stage1");
+assert.strictEqual(testLearner.roadmap.stage1.completedLesson, true);
+assert.strictEqual(testLearner.roadmap.stage1.readyForTest, true);
+
+// Nâng cấp sau khi đạt bài test
+const promoResult = userManager.promoteStage("stage1");
+assert.strictEqual(promoResult.nextStageKey, "stage2");
+assert.strictEqual(testLearner.roadmap.stage1.passedTest, true);
+assert.strictEqual(testLearner.roadmap.stage2.unlocked, true);
+assert.strictEqual(testLearner.currentLevel, "level_hsk1");
+console.log("   -> [PASS] Cơ chế hoàn thành bài tập, kích hoạt bài test và nâng cấp lộ trình hoạt động hoàn hảo");
+
+console.log("=== TẤT CẢ 5 BỘ KIỂM THỬ ĐỀU ĐẠT CHUẨN 100% ===");
