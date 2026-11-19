@@ -17,7 +17,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500&family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@500;700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/styles.css?v=20261119v6">
+  <link rel="stylesheet" href="css/styles.css?v=20261119v8">
 </head>
 <body>
 
@@ -61,6 +61,10 @@
 
         <button type="button" id="btnToggleTheme" class="btn btn-secondary btn-sm" title="Chuyển chế độ Sáng / Tối">
           Giao diện
+        </button>
+
+        <button type="button" id="btnOpenTeacherPortal" class="btn btn-secondary btn-sm teacher-portal-btn" title="Cổng Dành Cho Giáo Viên &amp; Quản Lý Lớp Học (Bảo mật bằng Mã PIN)">
+          👨‍🏫 Giáo Viên
         </button>
       </div>
     </div>
@@ -118,6 +122,43 @@
         </div>
       </div>
 
+      <!-- MỤC TIÊU HỌC TẬP HÔM NAY (DAILY GOAL TRACKER) -->
+      <div class="daily-goal-card" id="dailyGoalCard">
+        <div class="daily-goal-header">
+          <div class="daily-goal-title">
+            <span style="font-size: 1.3rem;">🎯</span>
+            <span>Mục Tiêu Học Tập Hôm Nay</span>
+            <span class="badge-tag badge-hsk" id="dailyGoalStatusBadge">Đang thực hiện</span>
+          </div>
+          <div style="font-size: 0.85rem; color: var(--primary); font-weight: 700;">
+            🎁 Thưởng <strong>+50 XP</strong> khi hoàn thành đủ 3 mục tiêu
+          </div>
+        </div>
+        <div class="daily-goal-grid">
+          <div class="daily-task-item" id="taskItemFlashcard">
+            <div class="task-label">
+              <span>🃏</span>
+              <span>Ôn 5 thẻ Flashcard</span>
+            </div>
+            <span class="task-progress" id="taskProgressFlashcard">0/5</span>
+          </div>
+          <div class="daily-task-item" id="taskItemWriting">
+            <div class="task-label">
+              <span>✍️</span>
+              <span>Luyện viết 2 chữ Hán</span>
+            </div>
+            <span class="task-progress" id="taskProgressWriting">0/2</span>
+          </div>
+          <div class="daily-task-item" id="taskItemSpeech">
+            <div class="task-label">
+              <span>🎙️</span>
+              <span>Luyện phát âm 3 từ</span>
+            </div>
+            <span class="task-progress" id="taskProgressSpeech">0/3</span>
+          </div>
+        </div>
+      </div>
+
       <!-- HƯỚNG DẪN TỪNG BƯỚC ĐI THEO LỘ TRÌNH -->
       <div class="roadmap-guide-card">
         <div class="roadmap-guide-header">
@@ -155,14 +196,14 @@
     <section id="tabVocab" class="tab-pane" role="tabpanel">
       <!-- BỘ LỌC CẤP ĐỘ NHANH (QUICK HSK LEVEL PILLS) -->
       <div class="level-pills-bar" id="vocabLevelPills">
-        <button type="button" class="level-pill-btn active" data-level="all">Tất Cả (86)</button>
-        <button type="button" class="level-pill-btn" data-level="hsk1">HSK 1 (12)</button>
-        <button type="button" class="level-pill-btn" data-level="hsk2">HSK 2 (12)</button>
-        <button type="button" class="level-pill-btn" data-level="hsk3">HSK 3 (12)</button>
-        <button type="button" class="level-pill-btn" data-level="hsk4">HSK 4 (14)</button>
-        <button type="button" class="level-pill-btn" data-level="hsk5">HSK 5 (18)</button>
-        <button type="button" class="level-pill-btn" data-level="academic">Học Thuật / HSK 6 (18)</button>
-        <button type="button" class="level-pill-btn" data-level="notebook">⭐ Sổ Tay Của Tôi</button>
+        <button type="button" class="level-pill-btn active" data-level="all">Tất Cả (<span id="countPillAll">205</span>)</button>
+        <button type="button" class="level-pill-btn" data-level="hsk1">HSK 1 (<span id="countPillHsk1">32</span>)</button>
+        <button type="button" class="level-pill-btn" data-level="hsk2">HSK 2 (<span id="countPillHsk2">32</span>)</button>
+        <button type="button" class="level-pill-btn" data-level="hsk3">HSK 3 (<span id="countPillHsk3">32</span>)</button>
+        <button type="button" class="level-pill-btn" data-level="hsk4">HSK 4 (<span id="countPillHsk4">34</span>)</button>
+        <button type="button" class="level-pill-btn" data-level="hsk5">HSK 5 (<span id="countPillHsk5">37</span>)</button>
+        <button type="button" class="level-pill-btn" data-level="academic">Học Thuật (<span id="countPillAcademic">38</span>)</button>
+        <button type="button" class="level-pill-btn" data-level="notebook">⭐ Sổ Tay (<span id="countPillNotebook">0</span>)</button>
       </div>
 
       <div class="filter-bar">
@@ -188,6 +229,20 @@
           <option value="Kinh tế & Quản lý">Kinh tế &amp; Quản lý</option>
           <option value="Khoa học Tự nhiên & Kỹ thuật">Khoa học Tự nhiên &amp; Kỹ thuật</option>
         </select>
+      </div>
+
+      <!-- CHẾ ĐỘ TỰ ĐỐ VUI TỪ ĐIỂN (FLASH-QUIZ STUDY MODES) -->
+      <div class="vocab-study-modes" id="vocabStudyModesBar">
+        <span style="font-size: 0.82rem; font-weight: 800; color: var(--ink-muted); text-transform: uppercase;">Chế Độ Tự Ôn Tập:</span>
+        <button type="button" class="study-mode-btn active" data-mode="all" title="Hiển thị đầy đủ chữ Hán, Pinyin và Nghĩa tiếng Việt">
+          👁️ Hiện Đầy Đủ
+        </button>
+        <button type="button" class="study-mode-btn" data-mode="hide-pinyin" title="Ẩn Bính âm Pinyin để tự luyện đọc chữ Hán (Bấm vào để mở xem)">
+          🙈 Ẩn Pinyin (Tập đọc)
+        </button>
+        <button type="button" class="study-mode-btn" data-mode="hide-meaning" title="Ẩn Nghĩa tiếng Việt để tự nhớ ý nghĩa (Bấm vào để mở xem)">
+          🤐 Ẩn Nghĩa (Tự đoán)
+        </button>
       </div>
 
       <div id="vocabGrid" class="vocab-grid"></div>
@@ -248,6 +303,12 @@
               </div>
 
               <div class="example-box" style="width: 100%;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                  <span style="font-size: 0.8rem; font-weight: 700; color: var(--ink-muted); text-transform: uppercase;">Ví Dụ Ngữ Cảnh:</span>
+                  <button type="button" class="btn btn-secondary btn-sm" id="btnSpeakCardExample" title="Nghe đọc cả câu ví dụ bằng giọng chuẩn Bắc Kinh" style="padding: 3px 9px; font-size: 0.78rem;">
+                    🔊 Nghe Câu Ví Dụ
+                  </button>
+                </div>
                 <div class="example-zh hanzi-font" id="fcBackExampleZh">这项研究揭示了气候变化对生态平衡的深远影响。</div>
                 <div class="example-py" id="fcBackExamplePy">Zhè xiàng yánjiū jiēshì le qìhòu biànhuà...</div>
                 <div class="example-vi" id="fcBackExampleVi">Nghiên cứu này làm sáng tỏ ảnh hưởng sâu sắc của biến đổi khí hậu...</div>
@@ -306,6 +367,9 @@
             </button>
             <button type="button" id="btnToggleGhost" class="btn btn-secondary btn-sm" title="Bật/Tắt mẫu nét mờ (Phím G)">
               Mẫu Nét Mờ: BẬT <span class="kbd-hint">G</span>
+            </button>
+            <button type="button" id="btnAnimateStrokes" class="btn btn-secondary btn-sm" title="Xem hoạt họa hướng dẫn nét bút">
+              ▶ Nét Mẫu
             </button>
             <button type="button" id="btnToggleGrid" class="btn btn-secondary btn-sm" title="Đổi kiểu lưới (Phím M)">
               Lưới: Mễ tự (米) <span class="kbd-hint">M</span>
@@ -367,7 +431,19 @@
 
         <div class="writing-sidebar">
           <h4 style="font-weight: 800; margin-bottom: 8px;">Chọn Chữ Hán Cần Luyện:</h4>
-          <p style="font-size: 0.82rem; color: var(--ink-muted);">Bấm vào chữ bất kỳ để nạp vào bảng tập viết:</p>
+          <div style="display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap;">
+            <input type="text" id="inputSearchWritingChar" class="form-input" style="padding: 6px 10px; font-size: 0.82rem; flex: 1; min-width: 130px;" placeholder="🔍 Tìm chữ / Hán-Việt...">
+            <select id="selectWritingLevel" class="form-input" style="padding: 6px 8px; font-size: 0.82rem; width: auto; font-weight: 600;">
+              <option value="all">Tất Cả Cấp Độ (237 chữ)</option>
+              <option value="HSK 1">HSK 1 (Căn bản)</option>
+              <option value="HSK 2">HSK 2 (Sơ cấp)</option>
+              <option value="HSK 3">HSK 3 (Trung cấp 1)</option>
+              <option value="HSK 4">HSK 4 (Trung cấp 2)</option>
+              <option value="HSK 5">HSK 5 (Cao cấp 1)</option>
+              <option value="Học thuật / HSK 6">HSK 6 &amp; Học Thuật</option>
+            </select>
+          </div>
+          <p style="font-size: 0.78rem; color: var(--ink-muted); margin-bottom: 6px;">Bấm vào chữ bất kỳ để nạp vào bảng tập viết (kèm âm Hán-Việt):</p>
           <div class="char-selector-list" id="charSelectorList"></div>
 
           <div style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 14px;">
@@ -395,7 +471,16 @@
           </div>
           <div class="hanzi-main hanzi-font" id="speechTargetHanzi" style="font-size: 3.8rem; margin-bottom: 6px;">研究</div>
           <div class="pinyin-line" style="justify-content: center; font-size: 1.6rem; margin-bottom: 8px;" id="speechTargetPinyin">yánjiū</div>
-          <div class="hanviet-pill" id="speechTargetHanViet" style="font-size: 1.05rem; margin-bottom: 28px;">Nghiên Cứu</div>
+          <div class="hanviet-pill" id="speechTargetHanViet" style="font-size: 1.05rem; margin-bottom: 10px;">Nghiên Cứu</div>
+          <div id="speechTargetMeaning" style="font-size: 1.02rem; color: var(--ink); margin-bottom: 24px; font-weight: 600; max-width: 500px; margin-left: auto; margin-right: auto; line-height: 1.4;">
+            [Động từ] Nghiên cứu, tìm hiểu sâu sắc về đề tài khoa học.
+          </div>
+
+          <div class="audio-speed-bar" style="justify-content: center; margin-bottom: 18px;">
+            <span style="font-size: 0.82rem; font-weight: 700; color: var(--ink-muted); text-transform: uppercase;">Tốc Độ Phát Âm:</span>
+            <button type="button" class="btn-speed-toggle" data-rate="0.75" title="Phát âm chậm rãi 0.75x để nghe rõ từng thanh điệu">🐢 Chậm (0.75x)</button>
+            <button type="button" class="btn-speed-toggle active" data-rate="1.0" title="Phát âm tốc độ tự nhiên bản ngữ">🐇 Chuẩn (1.0x)</button>
+          </div>
 
           <div style="display: flex; justify-content: center; gap: 14px; margin-bottom: 24px; flex-wrap: wrap;">
             <button type="button" id="btnPlaySpeechTarget" class="btn btn-secondary">
@@ -596,6 +681,12 @@
               📥 Nhập Dữ Liệu Khôi Phục
               <input type="file" id="btnImportUserBackupInput" accept=".json" style="display: none;">
             </label>
+            <button type="button" id="btnShareStudentProgress" class="btn btn-outline btn-sm" style="border: 1px dashed var(--primary); color: var(--primary); font-weight: 700;">
+              📋 Lấy Mã Tiến Độ Gửi Thầy Giáo
+            </button>
+            <button type="button" id="btnOpenTeacherPortalFromProfile" class="btn btn-secondary btn-sm teacher-portal-btn">
+              👨‍🏫 Mở Cổng Giáo Viên (Admin)
+            </button>
           </div>
         </div>
       </div>
@@ -637,25 +728,27 @@
         <div class="form-group" style="margin-bottom: 14px;">
           <label class="form-label" for="inputTargetLevel">Mức học mong muốn (Mục tiêu của bạn):</label>
           <select id="inputTargetLevel" class="form-input">
-            <option value="target_hsk1">HSK 1 — Nhập môn phát âm chuẩn &amp; từ vựng sơ cấp</option>
-            <option value="target_hsk2">HSK 2 — Giao tiếp căn bản thường nhật hàng ngày</option>
-            <option value="target_hsk3">HSK 3 — Tự tin giao tiếp đời sống &amp; du lịch</option>
-            <option value="target_hsk4">HSK 4 — Giao tiếp nâng cao &amp; Phỏng vấn xin việc</option>
-            <option value="target_hsk5">HSK 5 — Đọc hiểu báo chí &amp; Làm việc chuyên nghiệp</option>
-            <option value="target_hsk6">HSK 6 — Cao cấp, thành ngữ &amp; Biên phiên dịch lưu loát</option>
-            <option value="target_academic" selected>Học thuật &amp; Luận văn Chuyên ngành (IMRaD)</option>
+            <option value="target_hsk1">1. Mục tiêu HSK 1 — Nhập môn phát âm chuẩn &amp; 150 từ vựng</option>
+            <option value="target_hsk2" selected>2. Mục tiêu HSK 2 — Giao tiếp căn bản thường nhật hàng ngày</option>
+            <option value="target_hsk3">3. Mục tiêu HSK 3 — Tự tin sinh hoạt đời sống &amp; Du lịch (~600 từ)</option>
+            <option value="target_hsk4">4. Mục tiêu HSK 4 — Giao tiếp nâng cao &amp; Phỏng vấn xin việc (~1.200 từ)</option>
+            <option value="target_hsk5">5. Mục tiêu HSK 5 — Đọc hiểu báo chí &amp; Làm việc chuyên nghiệp (~2.500 từ)</option>
+            <option value="target_hsk6">6. Mục tiêu HSK 6 — Thành thạo lưu loát, thành ngữ &amp; Biên dịch (~5.000 từ)</option>
+            <option value="target_academic">7. Mục tiêu Học thuật — Luận văn Chuyên ngành (IMRaD quốc tế)</option>
           </select>
         </div>
 
         <div class="form-group" style="margin-bottom: 18px;">
-          <label class="form-label">Chọn Biểu Tượng Đại Diện (Avatar):</label>
+          <label class="form-label">Chọn Biểu Tượng Đại Diện (Đậm Chất Văn Hóa Trung Hoa):</label>
           <div class="avatar-selector-grid">
-            <button type="button" class="avatar-choice-btn selected" data-avatar="👨‍🎓">👨‍🎓</button>
-            <button type="button" class="avatar-choice-btn" data-avatar="👩‍🎓">👩‍🎓</button>
-            <button type="button" class="avatar-choice-btn" data-avatar="🧑‍🏫">🧑‍🏫</button>
-            <button type="button" class="avatar-choice-btn" data-avatar="🐉">🐉</button>
-            <button type="button" class="avatar-choice-btn" data-avatar="🪷">🪷</button>
-            <button type="button" class="avatar-choice-btn" data-avatar="✍️">✍️</button>
+            <button type="button" class="avatar-choice-btn selected" data-avatar="🐼" title="Gấu Trúc Quốc Bảo Trung Hoa">🐼</button>
+            <button type="button" class="avatar-choice-btn" data-avatar="🐉" title="Rồng Phương Đông (Long Vương)">🐉</button>
+            <button type="button" class="avatar-choice-btn" data-avatar="🏮" title="Đèn Lồng Đỏ Lễ Hội May Mắn">🏮</button>
+            <button type="button" class="avatar-choice-btn" data-avatar="🀄" title="Quân Mạt Chược (Hồng Trung)">🀄</button>
+            <button type="button" class="avatar-choice-btn" data-avatar="📜" title="Thư Tịch &amp; Trúc Giản Nho Học">📜</button>
+            <button type="button" class="avatar-choice-btn" data-avatar="🥟" title="Sủi Cảo Cổ Truyền (Giảo Tử Đoàn Viên)">🥟</button>
+            <button type="button" class="avatar-choice-btn" data-avatar="🍵" title="Trà Đạo Trung Hoa Ngàn Năm">🍵</button>
+            <button type="button" class="avatar-choice-btn" data-avatar="🏯" title="Cổ Trấn &amp; Kiến Trúc Cung Đình">🏯</button>
           </div>
         </div>
 
@@ -887,17 +980,243 @@
     </div>
   </div>
 
+  <!-- ==================== TEACHER AUTH MODAL ==================== -->
+  <div id="teacherAuthModal" class="modal-overlay" style="display: none;">
+    <div class="modal-card" style="max-width: 420px; text-align: center;">
+      <div style="font-size: 3rem; margin-bottom: 8px;">👨‍🏫</div>
+      <h3 style="font-size: 1.3rem; font-weight: 900; margin-bottom: 6px;">Cổng Quản Trị Giáo Viên</h3>
+      <p style="font-size: 0.85rem; color: var(--ink-muted); margin-bottom: 18px; line-height: 1.5;">
+        Khu vực bảo mật dành riêng cho Giáo Viên &amp; Chủ Nhiệm để theo dõi danh sách học viên, tiến độ lộ trình và điểm thi.
+      </p>
+
+      <form id="teacherAuthForm">
+        <div class="form-group" style="margin-bottom: 16px; text-align: left;">
+          <label class="form-label" for="inputTeacherPin">Mã PIN Bảo Mật Giáo Viên:</label>
+          <input type="password" id="inputTeacherPin" class="form-input" placeholder="Nhập mã PIN (Mặc định: 8888)" maxlength="20" required autofocus style="text-align: center; letter-spacing: 0.25em; font-size: 1.2rem; font-weight: 700;">
+          <div style="font-size: 0.78rem; color: var(--ink-secondary); margin-top: 6px; text-align: center;">
+            💡 Mã PIN ban đầu mặc định: <strong>8888</strong> (Có thể đổi sau khi vào)
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+          <button type="button" class="btn btn-secondary" id="btnCloseTeacherAuthModal" style="flex: 1;">Hủy Bỏ</button>
+          <button type="submit" class="btn btn-primary" style="flex: 2; font-weight: 700;">🔓 Mở Bảng Quản Trị</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== TEACHER DASHBOARD MODAL ==================== -->
+  <div id="teacherDashboardModal" class="modal-overlay" style="display: none;">
+    <div class="modal-card teacher-dashboard-card" style="max-width: 960px; width: 95vw; max-height: 92vh; display: flex; flex-direction: column;">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 14px; margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="font-size: 2.2rem;">👨‍🏫</div>
+          <div>
+            <h2 style="font-size: 1.35rem; font-weight: 900; margin-bottom: 2px;">Bảng Quản Trị &amp; Theo Dõi Học Viên</h2>
+            <div style="font-size: 0.82rem; color: var(--ink-muted);">Theo dõi ai đã vào học, cấp độ đạt được, chuỗi học và điểm kiểm tra</div>
+          </div>
+        </div>
+        <button type="button" class="btn btn-secondary btn-sm" id="btnCloseTeacherDashboardModal">✕ Đóng</button>
+      </div>
+
+      <!-- STATS COUNTERS -->
+      <div class="teacher-stats-grid">
+        <div class="teacher-stat-card">
+          <div class="stat-icon">👥</div>
+          <div class="stat-info">
+            <span class="stat-num" id="teacherStatTotalStudents">0</span>
+            <span class="stat-label">Tổng Số Học Viên</span>
+          </div>
+        </div>
+        <div class="teacher-stat-card">
+          <div class="stat-icon">⚡</div>
+          <div class="stat-info">
+            <span class="stat-num" id="teacherStatTotalXP">0</span>
+            <span class="stat-label">Tổng XP Toàn Lớp</span>
+          </div>
+        </div>
+        <div class="teacher-stat-card">
+          <div class="stat-icon">📝</div>
+          <div class="stat-info">
+            <span class="stat-num" id="teacherStatTotalExams">0</span>
+            <span class="stat-label">Bài Thi Đã Nộp</span>
+          </div>
+        </div>
+        <div class="teacher-stat-card">
+          <div class="stat-icon">🏆</div>
+          <div class="stat-info">
+            <span class="stat-num" id="teacherStatTopStudent" style="font-size: 1.1rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Chưa có</span>
+            <span class="stat-label">Thủ Khoa Điểm XP</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACTION TOOLBAR -->
+      <div class="teacher-toolbar">
+        <div style="display: flex; flex: 1; gap: 8px; min-width: 260px;">
+          <input type="text" id="teacherSearchInput" class="form-input form-input-sm" placeholder="🔍 Tìm kiếm học viên theo tên..." style="flex: 1;">
+          <select id="teacherFilterTarget" class="form-input form-input-sm" style="width: 170px;">
+            <option value="all">Tất cả mục tiêu</option>
+            <option value="target_hsk1">Mục tiêu HSK 1</option>
+            <option value="target_hsk2">Mục tiêu HSK 2</option>
+            <option value="target_hsk3">Mục tiêu HSK 3</option>
+            <option value="target_hsk4">Mục tiêu HSK 4</option>
+            <option value="target_hsk5">Mục tiêu HSK 5</option>
+            <option value="target_hsk6">Mục tiêu HSK 6</option>
+            <option value="target_academic">Học thuật (IMRaD)</option>
+          </select>
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button type="button" id="btnTeacherImportCode" class="btn btn-secondary btn-sm" title="Nhập mã tiến độ do học viên gửi">
+            📥 Nhập Mã Học Viên
+          </button>
+          <button type="button" id="btnTeacherExportCSV" class="btn btn-secondary btn-sm" title="Tải file Excel danh sách cả lớp">
+            📊 Xuất Excel (CSV)
+          </button>
+          <button type="button" id="btnTeacherCloudSettings" class="btn btn-secondary btn-sm" title="Kết nối Google Sheets để tự động nhận tiến độ">
+            ☁️ Google Sheets
+          </button>
+          <button type="button" id="btnTeacherChangePin" class="btn btn-secondary btn-sm" title="Đổi mã PIN Giáo Viên">
+            🔑 Đổi PIN
+          </button>
+        </div>
+      </div>
+
+      <!-- STUDENTS TABLE -->
+      <div style="flex: 1; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); margin-top: 10px;">
+        <table class="exam-history-table teacher-table" style="margin-top: 0;">
+          <thead>
+            <tr>
+              <th style="width: 45px;">STT</th>
+              <th>Học Viên</th>
+              <th>Mục Tiêu &amp; Cấp Độ</th>
+              <th>Chặng Lộ Trình</th>
+              <th>Điểm XP</th>
+              <th>Chuỗi Ngày</th>
+              <th>Bài Thi Gần Nhất</th>
+              <th>Lần Học Cuối</th>
+              <th style="text-align: center;">Thao Tác</th>
+            </tr>
+          </thead>
+          <tbody id="teacherStudentsTableBody">
+            <!-- Dynamically rendered -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== TEACHER STUDENT DETAIL MODAL ==================== -->
+  <div id="teacherStudentDetailModal" class="modal-overlay" style="display: none; z-index: 110;">
+    <div class="modal-card" style="max-width: 650px; max-height: 88vh; overflow-y: auto;">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 14px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div id="detailStudentAvatar" style="font-size: 2.2rem;">🐼</div>
+          <div>
+            <h3 id="detailStudentName" style="font-size: 1.2rem; font-weight: 900;">Tên Học Viên</h3>
+            <div id="detailStudentSub" style="font-size: 0.82rem; color: var(--ink-muted);">Trình độ &amp; Mục tiêu</div>
+          </div>
+        </div>
+        <button type="button" class="btn btn-secondary btn-sm" id="btnCloseStudentDetailModal">✕ Đóng</button>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px;">
+        <div style="background: var(--surface-alt); padding: 10px; border-radius: var(--radius-sm); text-align: center;">
+          <div style="font-size: 0.75rem; color: var(--ink-muted);">TỔNG XP</div>
+          <div id="detailStudentXP" style="font-size: 1.2rem; font-weight: 800; color: var(--gold);">0 XP</div>
+        </div>
+        <div style="background: var(--surface-alt); padding: 10px; border-radius: var(--radius-sm); text-align: center;">
+          <div style="font-size: 0.75rem; color: var(--ink-muted);">CHUỖI HỌC</div>
+          <div id="detailStudentStreak" style="font-size: 1.2rem; font-weight: 800; color: var(--primary);">1 Ngày</div>
+        </div>
+        <div style="background: var(--surface-alt); padding: 10px; border-radius: var(--radius-sm); text-align: center;">
+          <div style="font-size: 0.75rem; color: var(--ink-muted);">NGÀY BẮT ĐẦU</div>
+          <div id="detailStudentCreated" style="font-size: 0.85rem; font-weight: 700; margin-top: 4px;">--</div>
+        </div>
+      </div>
+
+      <h4 style="font-size: 0.95rem; font-weight: 800; margin-bottom: 8px;">🗺️ Trạng Thái 7 Chặng Lộ Trình:</h4>
+      <div id="detailStudentRoadmapList" style="margin-bottom: 16px; display: flex; flex-direction: column; gap: 6px;"></div>
+
+      <h4 style="font-size: 0.95rem; font-weight: 800; margin-bottom: 8px;">📝 Lịch Sử Điểm Thi &amp; Đánh Giá:</h4>
+      <div id="detailStudentExamList" style="margin-bottom: 16px;"></div>
+
+      <h4 style="font-size: 0.95rem; font-weight: 800; margin-bottom: 8px;">⏱️ Nhật Ký Hoạt Động Gần Nhất:</h4>
+      <div id="detailStudentLogsList" style="font-size: 0.82rem; color: var(--ink-secondary); display: flex; flex-direction: column; gap: 4px;"></div>
+    </div>
+  </div>
+
+  <!-- ==================== STUDENT SHARE PROGRESS MODAL ==================== -->
+  <div id="studentShareModal" class="modal-overlay" style="display: none;">
+    <div class="modal-card" style="max-width: 500px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 14px;">
+        <h3 style="font-size: 1.2rem; font-weight: 800;">📋 Báo Cáo Tiến Độ Cho Giáo Viên</h3>
+        <button type="button" class="btn btn-secondary btn-sm" id="btnCloseStudentShareModal">✕ Đóng</button>
+      </div>
+
+      <p style="font-size: 0.85rem; color: var(--ink-muted); margin-bottom: 12px; line-height: 1.5;">
+        Bạn có thể sao chép đoạn báo cáo này để gửi qua Zalo/Tin nhắn cho Thầy/Cô, hoặc gửi mã đồng bộ để Giáo Viên nạp vào danh sách lớp:
+      </p>
+
+      <textarea id="studentShareTextarea" class="form-input" rows="8" readonly style="font-size: 0.82rem; font-family: monospace; line-height: 1.4; resize: none; margin-bottom: 12px;"></textarea>
+
+      <div style="display: flex; gap: 10px;">
+        <button type="button" class="btn btn-secondary" id="btnCopyStudentCodeOnly" style="flex: 1; font-size: 0.85rem;">
+          🔑 Chỉ Sao Chép Mã
+        </button>
+        <button type="button" class="btn btn-primary" id="btnCopyStudentFullReport" style="flex: 1.4; font-size: 0.85rem; font-weight: 700;">
+          📋 Sao Chép Báo Cáo Gửi Zalo
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== TEACHER CLOUD SYNC MODAL ==================== -->
+  <div id="teacherCloudModal" class="modal-overlay" style="display: none; z-index: 110;">
+    <div class="modal-card" style="max-width: 580px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 14px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 1.5rem;">☁️</span>
+          <h3 style="font-size: 1.15rem; font-weight: 800;">Đồng Bộ Tự Động Lên Google Sheets</h3>
+        </div>
+        <button type="button" class="btn btn-secondary btn-sm" id="btnCloseTeacherCloudModal">✕ Đóng</button>
+      </div>
+
+      <div style="font-size: 0.85rem; color: var(--ink-muted); line-height: 1.5; margin-bottom: 12px;">
+        Mỗi khi học viên vào học trên điện thoại hoặc máy tính cá nhân, hệ thống sẽ <strong>tự động ghi 1 dòng vào Google Sheets của bạn trong 1 giây</strong> mà học viên không cần gửi mã thủ công!
+      </div>
+
+      <div style="background: var(--surface-alt); padding: 12px; border-radius: var(--radius-sm); margin-bottom: 14px; font-size: 0.8rem; line-height: 1.5;">
+        <strong>3 Bước Cực Dễ (Miễn Phí 100%):</strong><br>
+        1. Tạo 1 file Google Sheets mới trên Google Drive của bạn.<br>
+        2. Bấm <em>Tiện ích mở rộng ➔ Apps Script</em>, dán mã mẫu và chọn <em>Triển khai dưới dạng Ứng dụng web</em> (Ai cũng có quyền truy cập).<br>
+        3. Dán đường link Webhook nhận được vào ô bên dưới:
+      </div>
+
+      <div class="form-group" style="margin-bottom: 14px;">
+        <label class="form-label" for="inputTeacherWebhook">Đường Dẫn Webhook Google Sheets:</label>
+        <input type="url" id="inputTeacherWebhook" class="form-input" placeholder="https://script.google.com/macros/s/.../exec">
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button type="button" class="btn btn-secondary" id="btnCancelTeacherCloud">Hủy</button>
+        <button type="button" class="btn btn-primary" id="btnSaveTeacherCloud">Lưu Cài Đặt</button>
+      </div>
+    </div>
+  </div>
+
   <!-- TOAST CONTAINER -->
   <div id="toastContainer"></div>
 
   <!-- CORE CONTROLLER -->
-  <script type="module" src="js/app.js?v=20261119v6"></script>
+  <script type="module" src="js/app.js?v=20261119v11"></script>
 
   <!-- SERVICE WORKER REGISTRATION (OFFLINE PWA) -->
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=20261119v6').then(reg => {
+        navigator.serviceWorker.register('./sw.js?v=20261119v11').then(reg => {
           console.log('tiengtrungdema ServiceWorker active:', reg.scope);
           if (reg.update) reg.update();
         }).catch(err => {

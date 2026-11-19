@@ -2,7 +2,7 @@
  * Service Worker for tiengtrungdema (Network-First Strategy & Offline Support)
  */
 
-const CACHE_NAME = "tiengtrungdema-v3.0.7";
+const CACHE_NAME = "tiengtrungdema-v3.3.0";
 const ASSETS_TO_CACHE = [
   "./",
   "./index.html",

@@ -355,4 +355,45 @@ export class HanziWritingCanvas {
     this.render();
     return this.gridType;
   }
+
+  /**
+   * Phát hoạt họa minh họa nét mẫu chữ Hán (Flash animation chuẩn)
+   */
+  playStrokeAnimation(onComplete) {
+    if (!this.charToPractice) return;
+    const ctx = this.ctx;
+    const w = this.displayWidth;
+    const h = this.displayHeight;
+    let step = 0;
+    const totalSteps = 12;
+    const prevShowGhost = this.showGhost;
+    this.showGhost = true;
+
+    const animInterval = setInterval(() => {
+      step++;
+      this.drawGrid();
+      
+      // Vẽ chữ nhấp nháy phát sáng theo sắc đỏ chu sa thư pháp
+      const alpha = 0.2 + 0.6 * Math.sin((step / totalSteps) * Math.PI);
+      ctx.save();
+      ctx.font = `300 ${Math.floor(w * 0.70)}px 'Noto Sans SC', 'FangSong', 'KaiTi', sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillStyle = `rgba(197, 43, 31, ${alpha.toFixed(2)})`;
+      ctx.fillText(this.charToPractice, w / 2, h / 2 + 6);
+      ctx.restore();
+
+      // Vẽ lại các nét người dùng đã viết
+      for (const stroke of this.strokes) {
+        this.drawCalligraphyStroke(stroke);
+      }
+
+      if (step >= totalSteps) {
+        clearInterval(animInterval);
+        this.showGhost = prevShowGhost;
+        this.render();
+        if (typeof onComplete === "function") onComplete();
+      }
+    }, 60);
+  }
 }

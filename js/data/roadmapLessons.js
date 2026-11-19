@@ -313,7 +313,7 @@ export const USER_GUIDE_DATA = {
     content: `
       <div class="guide-step-card">
         <strong>📚 Kho Từ Vựng Toàn Diện:</strong>
-        <p>Hơn 86 mục từ vựng chọn lọc, phân bổ rõ ràng từ HSK 1, HSK 2, HSK 3, HSK 4, HSK 5, HSK 6 đến Học thuật Luận văn chuyên ngành.</p>
+        <p>Hơn 200+ mục từ vựng tinh hoa, phân bổ rõ ràng từ HSK 1, HSK 2, HSK 3, HSK 4, HSK 5, HSK 6 đến Học thuật Luận văn chuyên ngành IMRaD.</p>
       </div>
       <div class="guide-step-card">
         <strong>🔍 Cách Tra Cứu &amp; Sử Dụng:</strong>
@@ -416,19 +416,19 @@ export const USER_GUIDE_DATA = {
   },
 
   security: {
-    title: "7. Quản Lý Hồ Sơ & Bảo Mật Mã Truy Cập (Access Gate)",
+    title: "7. Quản Lý Hồ Sơ Cá Nhân & Lưu Trữ Lịch Sử Học Tập",
     content: `
       <div class="guide-step-card">
-        <strong>🔒 Bảo Vệ Ứng Dụng Nội Bộ:</strong>
-        <p>Ứng dụng được bảo vệ bằng lớp màn chắn <em>Mã Truy Cập (Access Key)</em>. Chỉ những ai có mã do người quản trị cấp mới có thể mở khóa sử dụng.</p>
+        <strong>👤 Hệ Thống Đa Người Học Độc Lập:</strong>
+        <p>Ứng dụng cho phép tạo nhiều hồ sơ học viên trên cùng một thiết bị. Dữ liệu lộ trình học, điểm số bài thi, lịch sử làm bài và sổ tay từ vựng của mỗi người học được lưu trữ độc lập và bảo toàn vĩnh viễn.</p>
       </div>
       <div class="guide-step-card">
-        <strong>🔑 Cách Đổi Mã Truy Cập &amp; Khóa Ứng Dụng:</strong>
+        <strong>📊 Cách Quản Lý Hồ Sơ &amp; Sao Lưu Dữ Liệu:</strong>
         <ul style="padding-left: 20px; line-height: 1.6;">
-          <li><strong>Đổi mã mới:</strong> Tại tab <em>"Hồ Sơ &amp; Bảo Mật"</em>, tìm mục <em>"Mã Truy Cập Hiện Tại"</em> và bấm nút <strong>"Đổi Mã"</strong> để đổi mật mã mới theo ý bạn.</li>
-          <li><strong>Khóa ứng dụng:</strong> Bấm nút <strong>"Khóa App"</strong> trên thanh điều hướng bất kỳ lúc nào để khóa màn hình ngay lập tức.</li>
-          <li><strong>Đổi Người Học:</strong> Bấm vào thẻ tên người học ở góc phải trên cùng để chuyển đổi giữa các học viên hoặc bấm tạo thêm hồ sơ học viên mới.</li>
-          <li><strong>Sao lưu dữ liệu:</strong> Bạn có thể bấm <strong>"Xuất Dữ Liệu Học Tập (JSON)"</strong> để tải toàn bộ tiến độ, điểm thi và từ vựng về máy tính đề phòng khi đổi trình duyệt.</li>
+          <li><strong>Đổi Người Học:</strong> Bấm vào thanh thông tin học viên ở góc phải trên cùng để chuyển đổi nhanh giữa các học viên hoặc bấm tạo thêm hồ sơ học viên mới.</li>
+          <li><strong>Tùy Biến Avatar &amp; Cấp Độ:</strong> Tại tab <em>"Hồ Sơ &amp; Lịch Sử"</em>, bạn có thể chọn lại Avatar đậm chất văn hóa Trung Hoa và cập nhật mục tiêu học tập.</li>
+          <li><strong>Theo Dõi Lịch Sử Thi:</strong> Toàn bộ kết quả bài thi HSK và bài test nâng cấp lộ trình đều được lưu lại kèm điểm số, thời gian và chứng nhận điện tử.</li>
+          <li><strong>Sao Lưu Dữ Liệu:</strong> Bấm <strong>"Xuất Dữ Liệu Học Tập (JSON)"</strong> để tải toàn bộ tiến độ, điểm thi và từ vựng về máy tính đề phòng khi đổi trình duyệt hoặc thiết bị mới.</li>
         </ul>
       </div>
     `

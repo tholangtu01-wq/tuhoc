@@ -597,6 +597,21 @@ body {
   letter-spacing: 2px;
 }
 
+.vocab-char-link {
+  display: inline-block;
+  cursor: pointer;
+  padding: 0 3px;
+  border-radius: 6px;
+  transition: transform 0.15s ease, color 0.15s ease, background-color 0.15s ease;
+}
+
+.vocab-char-link:hover {
+  color: var(--primary-dark);
+  background-color: rgba(197, 43, 31, 0.12);
+  transform: translateY(-2px);
+  text-decoration: underline;
+}
+
 .hanzi-badges {
   display: flex;
   flex-direction: column;
@@ -893,9 +908,10 @@ body {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin: 12px 0 20px;
-  max-height: 220px;
+  margin: 10px 0 20px;
+  max-height: 280px;
   overflow-y: auto;
+  padding-right: 4px;
 }
 
 .char-btn {
@@ -903,28 +919,34 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-width: 50px;
-  height: 54px;
+  min-width: 52px;
+  height: 56px;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-strong);
   background-color: var(--surface-alt);
   color: var(--ink);
   cursor: pointer;
   transition: var(--transition);
-  padding: 4px;
+  padding: 4px 2px;
 }
 
 .char-btn .char-btn-hanzi {
-  font-size: 1.3rem;
+  font-size: 1.35rem;
   font-weight: 800;
   line-height: 1.1;
 }
 
 .char-btn .char-btn-sub {
   font-size: 0.68rem;
-  color: var(--ink-muted);
+  color: var(--ink-secondary);
   line-height: 1;
-  margin-top: 2px;
+  margin-top: 3px;
+  font-weight: 700;
+  white-space: nowrap;
+  max-width: 46px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
 }
 
 .char-btn:hover, .char-btn.active {
@@ -1438,29 +1460,48 @@ body {
 }
 
 .avatar-selector-grid {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
   gap: 10px;
-  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+@media (min-width: 480px) {
+  .avatar-selector-grid {
+    grid-template-columns: repeat(8, 1fr);
+    gap: 8px;
+  }
 }
 
 .avatar-choice-btn {
-  width: 44px;
-  height: 44px;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  max-width: 52px;
+  max-height: 52px;
+  margin: 0 auto;
   border-radius: 50%;
   border: 2px solid var(--border);
   background-color: var(--surface-alt);
-  font-size: 1.4rem;
+  font-size: 1.55rem;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: var(--transition);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.avatar-choice-btn:hover {
+  border-color: var(--primary);
+  transform: translateY(-2px);
+  background-color: var(--surface);
 }
 
 .avatar-choice-btn.selected {
   border-color: var(--primary);
   background-color: var(--primary-soft);
-  transform: scale(1.1);
+  transform: scale(1.12);
+  box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.25);
 }
 
 /* User Switcher Cards List */
@@ -2045,4 +2086,274 @@ body {
   .btn:hover {
     transform: translateY(-1.5px);
   }
+}
+
+/* ==========================================================================
+   DAILY GOAL & HABIT TRACKER (MỤC TIÊU HỌC TẬP HÔM NAY)
+   ========================================================================== */
+.daily-goal-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+.daily-goal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.daily-goal-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.02rem;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.daily-goal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.daily-task-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  transition: all 0.2s ease;
+}
+
+.daily-task-item.completed {
+  background: rgba(34, 197, 94, 0.1);
+  border-color: rgba(34, 197, 94, 0.35);
+}
+
+.daily-task-item .task-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.daily-task-item .task-progress {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--ink-secondary);
+}
+
+.daily-task-item.completed .task-progress {
+  color: var(--success);
+}
+
+/* ==========================================================================
+   VOCABULARY FLASH-QUIZ STUDY MODES (CHẾ ĐỘ TỰ ĐỐ VUI TỪ ĐIỂN)
+   ========================================================================== */
+.vocab-study-modes {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+  padding: 8px 12px;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.study-mode-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 5px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  color: var(--ink-secondary);
+  transition: all 0.18s ease;
+}
+
+.study-mode-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.study-mode-btn.active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+  box-shadow: 0 2px 6px rgba(197, 43, 31, 0.25);
+}
+
+.vocab-grid.mode-hide-pinyin .pinyin-line span:first-child {
+  filter: blur(5px);
+  cursor: pointer;
+  user-select: none;
+  transition: filter 0.2s ease;
+}
+
+.vocab-grid.mode-hide-pinyin .pinyin-line span:first-child:hover,
+.vocab-grid.mode-hide-pinyin .pinyin-line span:first-child.revealed {
+  filter: blur(0);
+}
+
+.vocab-grid.mode-hide-meaning .meaning-text {
+  filter: blur(5px);
+  cursor: pointer;
+  user-select: none;
+  transition: filter 0.2s ease;
+}
+
+.vocab-grid.mode-hide-meaning .meaning-text:hover,
+.vocab-grid.mode-hide-meaning .meaning-text.revealed {
+  filter: blur(0);
+}
+
+/* ==========================================================================
+   AUDIO SPEED TOGGLES (TÙY CHỈNH TỐC ĐỘ PHÁT ÂM)
+   ========================================================================== */
+.audio-speed-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-speed-toggle {
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  padding: 3px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  color: var(--ink-secondary);
+  transition: all 0.18s ease;
+}
+
+.btn-speed-toggle.active {
+  background: var(--secondary);
+  color: #fff;
+  border-color: var(--secondary);
+}
+
+/* ==========================================================================
+   TEACHER & ADMIN PORTAL (CỔNG QUẢN TRỊ & THEO DÕI HỌC VIÊN)
+   ========================================================================== */
+.teacher-portal-btn {
+  background: linear-gradient(135deg, rgba(217, 119, 6, 0.12), rgba(194, 65, 12, 0.08));
+  border: 1px solid rgba(217, 119, 6, 0.35);
+  color: var(--gold-dark);
+  font-weight: 700;
+  transition: all 0.2s ease;
+}
+
+.teacher-portal-btn:hover {
+  background: var(--gold);
+  color: #fff;
+  border-color: var(--gold);
+  transform: translateY(-1px);
+}
+
+.teacher-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 768px) {
+  .teacher-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.teacher-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background-color: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.teacher-stat-card .stat-icon {
+  font-size: 1.8rem;
+}
+
+.teacher-stat-card .stat-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.teacher-stat-card .stat-num {
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: var(--ink-base);
+  line-height: 1.2;
+}
+
+.teacher-stat-card .stat-label {
+  font-size: 0.74rem;
+  color: var(--ink-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+}
+
+.teacher-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 10px 12px;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.teacher-table {
+  font-size: 0.84rem;
+}
+
+.teacher-table th {
+  padding: 8px 10px;
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+.teacher-table td {
+  padding: 8px 10px;
+  vertical-align: middle;
+}
+
+.teacher-table tr:hover td {
+  background-color: rgba(217, 119, 6, 0.04);
+}
+
+.teacher-student-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: var(--surface);
+  border: 1px solid var(--border);
 }

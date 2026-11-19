@@ -21,7 +21,7 @@ class AppController {
     this.currentDueCards = [];
     this.currentCardIndex = 0;
     this.speechTargetIndex = 0;
-    this.selectedAvatar = "👨‍🎓";
+    this.selectedAvatar = "🐼";
     this.currentLessonStage = "stage1";
 
     this.initDOM();
@@ -39,6 +39,7 @@ class AppController {
     this.initUserGuide();
     this.initMobileBottomNav();
     this.initKeyboardShortcuts();
+    this.initTeacherPortal();
 
     this.updateUserUI();
   }
@@ -106,17 +107,82 @@ class AppController {
       });
     });
 
+    const currentLevelSelect = document.getElementById("inputCurrentLevel");
+    const targetLevelSelect = document.getElementById("inputTargetLevel");
+
+    const levelRankMap = {
+      level_0: 0,
+      level_hsk1: 1,
+      level_hsk2: 2,
+      level_hsk3: 3,
+      level_hsk4: 4,
+      level_hsk5: 5,
+      level_hsk6: 6,
+      level_academic: 7
+    };
+
+    const targetRankMap = {
+      target_hsk1: 1,
+      target_hsk2: 2,
+      target_hsk3: 3,
+      target_hsk4: 4,
+      target_hsk5: 5,
+      target_hsk6: 6,
+      target_academic: 7
+    };
+
+    const nextTargetMap = {
+      level_0: "target_hsk2",
+      level_hsk1: "target_hsk2",
+      level_hsk2: "target_hsk3",
+      level_hsk3: "target_hsk4",
+      level_hsk4: "target_hsk5",
+      level_hsk5: "target_hsk6",
+      level_hsk6: "target_academic",
+      level_academic: "target_academic"
+    };
+
+    this.syncLevelOptions = () => {
+      if (!currentLevelSelect || !targetLevelSelect) return;
+      const curVal = currentLevelSelect.value;
+      const curRank = levelRankMap[curVal] ?? 0;
+      const curTgtVal = targetLevelSelect.value;
+      const curTgtRank = targetRankMap[curTgtVal] ?? 2;
+
+      // Cập nhật trạng thái các lựa chọn mục tiêu
+      Array.from(targetLevelSelect.options).forEach(opt => {
+        const optRank = targetRankMap[opt.value] ?? 1;
+        const cleanText = opt.text.replace(" (✓ Đã đạt)", "");
+        if (optRank <= curRank && optRank < 7) {
+          opt.disabled = true;
+          opt.text = cleanText + " (✓ Đã đạt)";
+        } else {
+          opt.disabled = false;
+          opt.text = cleanText;
+        }
+      });
+
+      // Nếu mục tiêu hiện tại thấp hơn hoặc bằng trình độ hiện tại, tự động chuyển lên mục tiêu tiếp theo hợp lý
+      if (curTgtRank <= curRank) {
+        targetLevelSelect.value = nextTargetMap[curVal] || "target_academic";
+      }
+    };
+
+    if (currentLevelSelect) {
+      currentLevelSelect.addEventListener("change", () => {
+        this.syncLevelOptions();
+      });
+    }
+
     const onboardingForm = document.getElementById("onboardingForm");
     if (onboardingForm) {
       onboardingForm.addEventListener("submit", (e) => {
         e.preventDefault();
         const nameInput = document.getElementById("inputUserName");
-        const currentLevelSelect = document.getElementById("inputCurrentLevel");
-        const targetLevelSelect = document.getElementById("inputTargetLevel");
 
         const name = (nameInput?.value || "").trim() || "Học Viên";
         const currentLevel = currentLevelSelect?.value || "level_0";
-        const targetLevel = targetLevelSelect?.value || "target_academic";
+        const targetLevel = targetLevelSelect?.value || "target_hsk2";
 
         const user = this.userManager.createUser(name, currentLevel, targetLevel, this.selectedAvatar);
         localStorage.setItem("tiengtrungdema_has_onboarded", "true");
@@ -177,6 +243,22 @@ class AppController {
       if (targetLevelSelect && this.userManager.currentUser.targetLevel) {
         targetLevelSelect.value = this.userManager.currentUser.targetLevel;
       }
+      this.selectedAvatar = this.userManager.currentUser.avatar || "🐼";
+    } else {
+      this.selectedAvatar = "🐼";
+    }
+
+    // Cập nhật trạng thái hiển thị của các nút avatar văn hóa Trung Hoa
+    document.querySelectorAll(".avatar-choice-btn").forEach(btn => {
+      if (btn.getAttribute("data-avatar") === this.selectedAvatar) {
+        btn.classList.add("selected");
+      } else {
+        btn.classList.remove("selected");
+      }
+    });
+
+    if (typeof this.syncLevelOptions === "function") {
+      this.syncLevelOptions();
     }
     modal.style.display = "flex";
   }
@@ -242,7 +324,10 @@ class AppController {
     const streakEl = document.getElementById("streakCount");
     const xpEl = document.getElementById("xpCount");
 
-    if (avatarEl) avatarEl.textContent = user.avatar;
+    const VALID_AVATARS = ["🐼", "🐉", "🏮", "🀄", "📜", "🥟", "🍵", "🏯"];
+    const displayAvatar = (user.avatar && VALID_AVATARS.includes(user.avatar)) ? user.avatar : "🐼";
+
+    if (avatarEl) avatarEl.textContent = displayAvatar;
     if (nameEl) nameEl.textContent = user.name;
     const curLevelText = LEVEL_LABELS[user.currentLevel] || "Mới bắt đầu";
     const tgtText = TARGET_LABELS[user.targetLevel] || "Học thuật";
@@ -254,7 +339,7 @@ class AppController {
     const greetingNameEl = document.getElementById("roadmapGreetingName");
     const targetDescEl = document.getElementById("roadmapTargetDesc");
 
-    if (greetingAvatarEl) greetingAvatarEl.textContent = user.avatar;
+    if (greetingAvatarEl) greetingAvatarEl.textContent = displayAvatar;
     if (greetingNameEl) greetingNameEl.textContent = `Lộ Trình Học Của ${user.name}`;
     if (targetDescEl) {
       targetDescEl.innerHTML = `
@@ -322,6 +407,8 @@ class AppController {
   renderRoadmap() {
     const user = this.userManager.currentUser;
     if (!user) return;
+
+    this.renderDailyGoal();
 
     document.getElementById("roadmapGreetingAvatar").textContent = user.avatar;
     document.getElementById("roadmapGreetingName").textContent = `Lộ Trình Học Của ${user.name}`;
@@ -432,14 +519,111 @@ class AppController {
     }
   }
 
+  renderDailyGoal() {
+    const goal = this.userManager.getDailyGoal();
+    if (!goal) return;
+
+    const fcCountEl = document.getElementById("taskProgressFlashcard");
+    const wrCountEl = document.getElementById("taskProgressWriting");
+    const spCountEl = document.getElementById("taskProgressSpeech");
+    const badgeEl = document.getElementById("dailyGoalStatusBadge");
+
+    const itemFc = document.getElementById("taskItemFlashcard");
+    const itemWr = document.getElementById("taskItemWriting");
+    const itemSp = document.getElementById("taskItemSpeech");
+
+    if (fcCountEl) fcCountEl.textContent = `${Math.min(goal.flashcard, goal.flashcardTarget)}/${goal.flashcardTarget}`;
+    if (wrCountEl) wrCountEl.textContent = `${Math.min(goal.writing, goal.writingTarget)}/${goal.writingTarget}`;
+    if (spCountEl) spCountEl.textContent = `${Math.min(goal.speech, goal.speechTarget)}/${goal.speechTarget}`;
+
+    const fcDone = goal.flashcard >= goal.flashcardTarget;
+    const wrDone = goal.writing >= goal.writingTarget;
+    const spDone = goal.speech >= goal.speechTarget;
+
+    if (itemFc) itemFc.classList.toggle("completed", fcDone);
+    if (itemWr) itemWr.classList.toggle("completed", wrDone);
+    if (itemSp) itemSp.classList.toggle("completed", spDone);
+
+    if (fcDone && wrDone && spDone) {
+      if (badgeEl) {
+        badgeEl.textContent = "✅ ĐÃ HOÀN THÀNH (+50 XP)";
+        badgeEl.className = "badge-tag badge-hsk";
+      }
+    } else {
+      const completedCount = (fcDone ? 1 : 0) + (wrDone ? 1 : 0) + (spDone ? 1 : 0);
+      if (badgeEl) {
+        badgeEl.textContent = `Đang thực hiện (${completedCount}/3)`;
+        badgeEl.className = "badge-tag badge-academic";
+      }
+    }
+  }
+
   // ========================== TAB 2: TỪ ĐIỂN & SỔ TAY ==========================
+  updateVocabPillsCount() {
+    const counts = {
+      all: VOCABULARY_DATA.length,
+      hsk1: VOCABULARY_DATA.filter(v => v.level === "HSK 1").length,
+      hsk2: VOCABULARY_DATA.filter(v => v.level === "HSK 2").length,
+      hsk3: VOCABULARY_DATA.filter(v => v.level === "HSK 3").length,
+      hsk4: VOCABULARY_DATA.filter(v => v.level === "HSK 4").length,
+      hsk5: VOCABULARY_DATA.filter(v => v.level === "HSK 5").length,
+      academic: VOCABULARY_DATA.filter(v => v.level.includes("Học thuật") || v.level.includes("HSK 6")).length,
+      notebook: (this.userManager.currentUser?.notebook || []).length
+    };
+    const setEl = (id, val) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = val;
+    };
+    setEl("countPillAll", counts.all);
+    setEl("countPillHsk1", counts.hsk1);
+    setEl("countPillHsk2", counts.hsk2);
+    setEl("countPillHsk3", counts.hsk3);
+    setEl("countPillHsk4", counts.hsk4);
+    setEl("countPillHsk5", counts.hsk5);
+    setEl("countPillAcademic", counts.academic);
+    setEl("countPillNotebook", counts.notebook);
+  }
+
   initVocabTab() {
+    this.updateVocabPillsCount();
     const searchInput = document.getElementById("vocabSearchInput");
     const levelSelect = document.getElementById("levelFilterSelect");
     const categorySelect = document.getElementById("categoryFilterSelect");
     const pills = document.querySelectorAll("#vocabLevelPills .level-pill-btn");
 
+    if (categorySelect) {
+      const currentVal = categorySelect.value || "all";
+      const uniqueCats = Array.from(new Set(VOCABULARY_DATA.map(v => v.category))).sort();
+      categorySelect.innerHTML = `<option value="all">Tất cả chủ đề (${uniqueCats.length} chủ đề)</option>` +
+        uniqueCats.map(cat => `<option value="${cat}">${cat}</option>`).join("");
+      if (uniqueCats.includes(currentVal) || currentVal === "all") {
+        categorySelect.value = currentVal;
+      }
+    }
+
+    document.querySelectorAll("#vocabStudyModesBar .study-mode-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("#vocabStudyModesBar .study-mode-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        const mode = btn.getAttribute("data-mode");
+        const grid = document.getElementById("vocabGrid");
+        if (grid) {
+          grid.classList.remove("mode-hide-pinyin", "mode-hide-meaning");
+          if (mode === "hide-pinyin") {
+            grid.classList.add("mode-hide-pinyin");
+            this.showToast("Chế độ Ẩn Pinyin: Bấm vào vùng mờ để tự kiểm tra cách đọc!");
+          } else if (mode === "hide-meaning") {
+            grid.classList.add("mode-hide-meaning");
+            this.showToast("Chế độ Ẩn Nghĩa: Bấm vào vùng mờ để tự kiểm tra ý nghĩa!");
+          } else {
+            this.showToast("Đã hiển thị đầy đủ thông tin từ vựng");
+          }
+        }
+      });
+    });
+
     const render = () => {
+      this.updateVocabPillsCount();
       const q = (searchInput?.value || "").trim().toLowerCase();
       const level = levelSelect?.value || "all";
       const cat = categorySelect?.value || "all";
@@ -508,12 +692,15 @@ class AppController {
 
     grid.innerHTML = items.map(item => {
       const inNotebook = notebook.includes(item.id);
+      const charsHtml = Array.from(item.hanzi).map(ch => 
+        `<span class="vocab-char-link" data-char="${ch}" title="Bấm vào chữ '${ch}' để chuyển sang bảng tập viết">${ch}</span>`
+      ).join("");
       return `
         <div class="vocab-card" data-id="${item.id}">
           <div>
             <div class="vocab-card-header">
               <div>
-                <div class="hanzi-main hanzi-font">${item.hanzi}</div>
+                <div class="hanzi-main hanzi-font">${charsHtml}</div>
                 <div style="font-size: 0.8rem; color: var(--ink-muted);">Phồn thể: ${item.traditional}</div>
               </div>
               <div class="hanzi-badges">
@@ -559,6 +746,26 @@ class AppController {
         </div>
       `;
     }).join("");
+
+    grid.querySelectorAll(".vocab-char-link").forEach(span => {
+      span.addEventListener("click", () => {
+        const ch = span.getAttribute("data-char");
+        this.switchTab("tabWriting");
+        if (this.writingCanvas) {
+          this.writingCanvas.setChar(ch);
+          const infoEl = document.getElementById("canvasCharInfo");
+          if (infoEl) infoEl.textContent = `Chữ: ${ch}`;
+          this.updateWritingCharDetails(ch);
+        }
+      });
+    });
+
+    // Bấm vào vùng mờ để lật mở nhanh Pinyin hoặc Nghĩa (Flash-Quiz Mode)
+    grid.querySelectorAll(".pinyin-line span:first-child, .meaning-text").forEach(el => {
+      el.addEventListener("click", () => {
+        el.classList.toggle("revealed");
+      });
+    });
 
     grid.querySelectorAll(".btn-toggle-notebook").forEach(btn => {
       btn.addEventListener("click", () => {
@@ -629,6 +836,19 @@ class AppController {
       }
     });
 
+    document.getElementById("btnSpeakCardExample")?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const currentItem = this.getCurrentSRSCardItem();
+      const btn = document.getElementById("btnSpeakCardExample");
+      if (currentItem && currentItem.exampleZh) {
+        this.speech.speak(
+          currentItem.exampleZh,
+          () => { if (btn) btn.textContent = "🔊 Đang đọc..."; },
+          () => { if (btn) btn.textContent = "🔊 Nghe Câu Ví Dụ"; }
+        );
+      }
+    });
+
     document.querySelectorAll(".srs-buttons-bar button").forEach(btn => {
       btn.addEventListener("click", () => {
         const rating = parseInt(btn.getAttribute("data-rating"), 10);
@@ -681,7 +901,15 @@ class AppController {
 
     this.srs.reviewCard(currentItem.id, quality);
     this.userManager.addXP(10, `Ôn tập thẻ SRS: ${currentItem.hanzi} (${currentItem.hanViet})`);
+
+    // Ghi nhận tiến độ Mục Tiêu Học Tập Hôm Nay
+    const res = this.userManager.recordDailyProgress("flashcard", 1);
+    if (res?.rewardGranted) {
+      this.showToast("🎉 Chúc mừng! Bạn đã hoàn thành xuất sắc Mục Tiêu Học Tập Hôm Nay (+50 XP)");
+    }
+
     this.updateUserUI();
+    this.renderDailyGoal();
 
     const qualityNames = ["Quên (1 ngày)", "Khó", "Tốt", "Dễ"];
     this.showToast(`Đã ghi nhận [${qualityNames[quality]}]: +10 XP`);
@@ -702,18 +930,57 @@ class AppController {
     });
 
     const selectorList = document.getElementById("charSelectorList");
-    if (selectorList) {
-      const allUniqueChars = Array.from(
-        new Set(VOCABULARY_DATA.flatMap(v => v.hanzi.split("")))
-      ).slice(0, 48);
+    const searchInput = document.getElementById("inputSearchWritingChar");
+    const levelSelect = document.getElementById("selectWritingLevel");
 
-      selectorList.innerHTML = allUniqueChars.map((ch, idx) => {
+    const renderWritingChars = (level = "all", query = "") => {
+      if (!selectorList) return;
+
+      let filteredVocab = VOCABULARY_DATA;
+      if (level && level !== "all") {
+        filteredVocab = VOCABULARY_DATA.filter(v => v.level === level);
+      }
+
+      let chars = Array.from(new Set(filteredVocab.flatMap(v => v.hanzi.split(""))));
+
+      if (query && query.trim()) {
+        const q = query.trim().toLowerCase();
+        chars = chars.filter(ch => {
+          if (ch.includes(q)) return true;
+          const info = HANZI_CHAR_DETAILS[ch];
+          if (info) {
+            if (info.pinyin.toLowerCase().includes(q)) return true;
+            if (info.hanViet.toLowerCase().includes(q)) return true;
+            if (info.meaning.toLowerCase().includes(q)) return true;
+          }
+          return false;
+        });
+      }
+
+      if (chars.length === 0) {
+        selectorList.innerHTML = `<div style="font-size: 0.82rem; color: var(--ink-muted); padding: 14px; text-align: center; width: 100%;">Không tìm thấy chữ Hán nào phù hợp</div>`;
+        return;
+      }
+
+      selectorList.innerHTML = chars.map((ch, idx) => {
+        let sub = "";
         const info = HANZI_CHAR_DETAILS[ch];
-        const sub = info ? info.hanViet : "";
+        if (info && info.hanViet) {
+          sub = info.hanViet.split("/")[0].trim();
+        } else {
+          const matchWord = VOCABULARY_DATA.find(v => v.hanzi.includes(ch));
+          if (matchWord) {
+            const pos = matchWord.hanzi.indexOf(ch);
+            const hvSyllables = matchWord.hanViet.split(/\s+/);
+            sub = (pos >= 0 && pos < hvSyllables.length) ? hvSyllables[pos] : matchWord.meaning.slice(0, 4);
+          }
+        }
+
+        const isCurrent = (this.writingCanvas?.charToPractice === ch) || (idx === 0 && !this.writingCanvas?.charToPractice);
         return `
-          <button type="button" class="char-btn ${idx === 0 ? 'active' : ''}" data-char="${ch}" title="${sub ? `${ch} (${sub})` : ch}">
+          <button type="button" class="char-btn ${isCurrent ? 'active' : ''}" data-char="${ch}" title="${sub ? `${ch} (${sub})` : ch}">
             <span class="char-btn-hanzi">${ch}</span>
-            <span class="char-btn-sub">${sub}</span>
+            <span class="char-btn-sub">${sub || 'Chữ Hán'}</span>
           </button>
         `;
       }).join("");
@@ -729,8 +996,24 @@ class AppController {
           this.updateWritingCharDetails(ch);
         });
       });
+    };
 
-      this.updateWritingCharDetails(allUniqueChars[0] || "研");
+    if (selectorList) {
+      renderWritingChars("all", "");
+
+      if (searchInput) {
+        searchInput.addEventListener("input", () => {
+          renderWritingChars(levelSelect?.value || "all", searchInput.value);
+        });
+      }
+
+      if (levelSelect) {
+        levelSelect.addEventListener("change", () => {
+          renderWritingChars(levelSelect.value, searchInput?.value || "");
+        });
+      }
+
+      this.updateWritingCharDetails("研");
     }
 
     // Chọn ngòi bút viết thon gọn (Bút bi 0.5mm, Bút gel 0.7mm, Bút lông 1.0mm)
@@ -772,6 +1055,14 @@ class AppController {
       if (btn) btn.textContent = `Mẫu Nét Mờ: ${this.writingCanvas.showGhost ? 'BẬT' : 'TẮT'}`;
     });
 
+    document.getElementById("btnAnimateStrokes")?.addEventListener("click", () => {
+      const btn = document.getElementById("btnAnimateStrokes");
+      if (btn) btn.textContent = "⏳ Đang chạy...";
+      this.writingCanvas.playStrokeAnimation(() => {
+        if (btn) btn.textContent = "▶ Nét Mẫu";
+      });
+    });
+
     document.getElementById("btnToggleGrid")?.addEventListener("click", () => {
       this.writingCanvas.gridType = this.writingCanvas.gridType === "mi" ? "tian" : "mi";
       this.writingCanvas.render();
@@ -784,7 +1075,15 @@ class AppController {
 
     document.getElementById("btnCompleteWriting")?.addEventListener("click", () => {
       this.userManager.addXP(20, `Luyện viết chữ Hán: ${this.writingCanvas.charToPractice}`);
+
+      // Ghi nhận tiến độ Mục Tiêu Học Tập Hôm Nay
+      const res = this.userManager.recordDailyProgress("writing", 1);
+      if (res?.rewardGranted) {
+        this.showToast("🎉 Chúc mừng! Bạn đã hoàn thành xuất sắc Mục Tiêu Học Tập Hôm Nay (+50 XP)");
+      }
+
       this.updateUserUI();
+      this.renderDailyGoal();
       this.showToast("Xuất sắc! Đã hoàn thành luyện viết 1 chữ Hán (+20 XP)");
     });
   }
@@ -802,22 +1101,32 @@ class AppController {
   }
 
   updateWritingCharDetails(ch) {
-    const details = HANZI_CHAR_DETAILS[ch] || {
-      pinyin: "",
-      hanViet: "",
-      meaning: "Chữ Hán trong kho từ vựng tiếng Trung",
-      radical: "Tra cứu bộ thủ",
-      strokes: 1,
-      strokeType: "Quy chuẩn bút thuận",
-      compounds: ""
-    };
-
-    if (!details.pinyin) {
+    let details = HANZI_CHAR_DETAILS[ch];
+    if (!details) {
       const matchWord = VOCABULARY_DATA.find(v => v.hanzi.includes(ch));
       if (matchWord) {
-        details.meaning = matchWord.meaning;
-        details.hanViet = matchWord.hanViet;
-        details.radical = matchWord.radical;
+        const pos = matchWord.hanzi.indexOf(ch);
+        const hvParts = matchWord.hanViet.split(/\s+/);
+        const pyParts = matchWord.pinyin.split(/\s+/);
+        details = {
+          pinyin: (pos >= 0 && pos < pyParts.length) ? pyParts[pos] : matchWord.pinyin,
+          hanViet: (pos >= 0 && pos < hvParts.length) ? hvParts[pos] : matchWord.hanViet,
+          meaning: matchWord.meaning,
+          radical: matchWord.radical,
+          strokes: 5,
+          strokeType: "Quy chuẩn bút thuận",
+          compounds: `${matchWord.hanzi} (${matchWord.pinyin} - ${matchWord.meaning})`
+        };
+      } else {
+        details = {
+          pinyin: "pīnyīn",
+          hanViet: "Hán Việt",
+          meaning: "Chữ Hán trong kho dữ liệu luyện viết",
+          radical: "Tra cứu bộ thủ",
+          strokes: 5,
+          strokeType: "Quy chuẩn bút thuận",
+          compounds: `${ch} (Đang cập nhật từ ghép)`
+        };
       }
     }
 
@@ -843,6 +1152,16 @@ class AppController {
   // ========================== TAB 5: PHÁT ÂM AI ==========================
   initSpeechTab() {
     this.renderSpeechTarget();
+
+    document.querySelectorAll(".btn-speed-toggle").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".btn-speed-toggle").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        const rate = parseFloat(btn.getAttribute("data-rate")) || 1.0;
+        this.speech.setSpeechRate(rate);
+        this.showToast(`Đã đổi tốc độ phát âm: ${rate === 0.75 ? "🐢 Chậm rãi 0.75x" : "🐇 Tự nhiên 1.0x"}`);
+      });
+    });
 
     document.getElementById("btnPlaySpeechTarget")?.addEventListener("click", () => {
       const item = VOCABULARY_DATA[this.speechTargetIndex];
@@ -872,7 +1191,15 @@ class AppController {
 
             if (result.isMatched) {
               this.userManager.addXP(30, `Luyện phát âm chuẩn: ${item.hanzi} (${result.similarity}%)`);
+              
+              // Ghi nhận tiến độ Mục Tiêu Học Tập Hôm Nay
+              const res = this.userManager.recordDailyProgress("speech", 1);
+              if (res?.rewardGranted) {
+                this.showToast("🎉 Chúc mừng! Bạn đã hoàn thành xuất sắc Mục Tiêu Học Tập Hôm Nay (+50 XP)");
+              }
+
               this.updateUserUI();
+              this.renderDailyGoal();
               this.showToast("Phát âm rất chuẩn xác! +30 XP");
             }
           },
@@ -893,6 +1220,11 @@ class AppController {
     document.getElementById("speechTargetHanzi").textContent = item.hanzi;
     document.getElementById("speechTargetPinyin").textContent = item.pinyin;
     document.getElementById("speechTargetHanViet").textContent = item.hanViet;
+
+    const meaningEl = document.getElementById("speechTargetMeaning");
+    if (meaningEl) {
+      meaningEl.textContent = `[${item.partOfSpeech || 'Từ vựng'}] ${item.meaning}`;
+    }
 
     const resultBox = document.getElementById("speechResultBox");
     if (resultBox) resultBox.style.display = "none";
@@ -1354,7 +1686,9 @@ class AppController {
     const user = this.userManager.currentUser;
     if (!user) return;
 
-    document.getElementById("profileBigAvatar").textContent = user.avatar;
+    const VALID_AVATARS = ["🐼", "🐉", "🏮", "🀄", "📜", "🥟", "🍵", "🏯"];
+    const displayAvatar = (user.avatar && VALID_AVATARS.includes(user.avatar)) ? user.avatar : "🐼";
+    document.getElementById("profileBigAvatar").textContent = displayAvatar;
     document.getElementById("profileBigName").textContent = user.name;
     const curTxt = LEVEL_LABELS[user.currentLevel] || user.currentLevel;
     const tgtTxt = TARGET_LABELS[user.targetLevel] || user.targetLevel;
@@ -1579,6 +1913,340 @@ class AppController {
   openShortcutsModal() {
     const modal = document.getElementById("shortcutsModal");
     if (modal) modal.style.display = "flex";
+  }
+
+  // ========================== CỔNG QUẢN TRỊ & THEO DÕI GIÁO VIÊN ==========================
+  initTeacherPortal() {
+    const authModal = document.getElementById("teacherAuthModal");
+    const dashModal = document.getElementById("teacherDashboardModal");
+    const authForm = document.getElementById("teacherAuthForm");
+    const pinInput = document.getElementById("inputTeacherPin");
+
+    const openAuth = () => {
+      if (pinInput) pinInput.value = "";
+      if (authModal) authModal.style.display = "flex";
+      setTimeout(() => pinInput?.focus(), 100);
+    };
+
+    document.getElementById("btnOpenTeacherPortal")?.addEventListener("click", openAuth);
+    document.getElementById("btnOpenTeacherPortalFromProfile")?.addEventListener("click", openAuth);
+    document.getElementById("btnCloseTeacherAuthModal")?.addEventListener("click", () => {
+      if (authModal) authModal.style.display = "none";
+    });
+
+    authForm?.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const pin = pinInput?.value || "";
+      if (this.userManager.verifyAdminPin(pin)) {
+        if (authModal) authModal.style.display = "none";
+        if (dashModal) dashModal.style.display = "flex";
+        this.renderTeacherDashboard();
+        this.showToast("🔓 Đã mở Bảng Quản Trị Giáo Viên thành công!");
+      } else {
+        this.showToast("❌ Mã PIN Giáo Viên không chính xác!");
+        if (pinInput) {
+          pinInput.value = "";
+          pinInput.focus();
+        }
+      }
+    });
+
+    document.getElementById("btnCloseTeacherDashboardModal")?.addEventListener("click", () => {
+      if (dashModal) dashModal.style.display = "none";
+    });
+
+    // Search and filter
+    document.getElementById("teacherSearchInput")?.addEventListener("input", () => {
+      this.renderTeacherDashboard();
+    });
+    document.getElementById("teacherFilterTarget")?.addEventListener("change", () => {
+      this.renderTeacherDashboard();
+    });
+
+    // Export CSV
+    document.getElementById("btnTeacherExportCSV")?.addEventListener("click", () => {
+      const csvStr = this.userManager.exportStudentsToCSV();
+      const blob = new Blob([csvStr], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `tiengtrungdema-danh-sach-hoc-vien-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      this.showToast("📊 Đã xuất file Excel (CSV) danh sách cả lớp!");
+    });
+
+    // Import student code
+    document.getElementById("btnTeacherImportCode")?.addEventListener("click", () => {
+      const code = prompt("Dán Mã Tiến Độ do học viên gửi (Bắt đầu bằng TTDM-SYNC-...):");
+      if (!code) return;
+      const res = this.userManager.importStudentProgressCode(code);
+      if (res.success) {
+        this.showToast(`✅ Đã nạp thành công tiến độ của học viên: ${res.studentName}!`);
+        this.renderTeacherDashboard();
+      } else {
+        alert(res.message);
+      }
+    });
+
+    // Change PIN
+    document.getElementById("btnTeacherChangePin")?.addEventListener("click", () => {
+      const oldPin = prompt("Nhập mã PIN Giáo Viên hiện tại:");
+      if (!oldPin) return;
+      const newPin = prompt("Nhập mã PIN mới (ít nhất 4 ký tự):");
+      if (!newPin) return;
+      const res = this.userManager.changeAdminPin(oldPin, newPin);
+      if (res.success) {
+        this.showToast("🔑 " + res.message);
+      } else {
+        alert(res.message);
+      }
+    });
+
+    // Cloud settings
+    const cloudModal = document.getElementById("teacherCloudModal");
+    const webhookInput = document.getElementById("inputTeacherWebhook");
+    document.getElementById("btnTeacherCloudSettings")?.addEventListener("click", () => {
+      if (webhookInput) webhookInput.value = this.userManager.getCloudSyncWebhook() || "";
+      if (cloudModal) cloudModal.style.display = "flex";
+    });
+    document.getElementById("btnCloseTeacherCloudModal")?.addEventListener("click", () => {
+      if (cloudModal) cloudModal.style.display = "none";
+    });
+    document.getElementById("btnCancelTeacherCloud")?.addEventListener("click", () => {
+      if (cloudModal) cloudModal.style.display = "none";
+    });
+    document.getElementById("btnSaveTeacherCloud")?.addEventListener("click", () => {
+      const url = webhookInput?.value || "";
+      this.userManager.setCloudSyncWebhook(url);
+      if (cloudModal) cloudModal.style.display = "none";
+      this.showToast("☁️ Đã lưu thiết lập đồng bộ Google Sheets!");
+    });
+
+    // Student share progress modal
+    const shareModal = document.getElementById("studentShareModal");
+    const shareTextarea = document.getElementById("studentShareTextarea");
+    let currentShareObj = null;
+
+    document.getElementById("btnShareStudentProgress")?.addEventListener("click", () => {
+      currentShareObj = this.userManager.generateStudentProgressCode();
+      if (!currentShareObj) return;
+      if (shareTextarea) shareTextarea.value = currentShareObj.summaryText;
+      if (shareModal) shareModal.style.display = "flex";
+    });
+
+    document.getElementById("btnCloseStudentShareModal")?.addEventListener("click", () => {
+      if (shareModal) shareModal.style.display = "none";
+    });
+
+    document.getElementById("btnCopyStudentCodeOnly")?.addEventListener("click", () => {
+      if (currentShareObj && currentShareObj.code) {
+        navigator.clipboard.writeText(currentShareObj.code).then(() => {
+          this.showToast("🔑 Đã sao chép mã đồng bộ vào bộ nhớ tạm!");
+        }).catch(() => {
+          shareTextarea.select();
+          document.execCommand("copy");
+          this.showToast("🔑 Đã sao chép mã!");
+        });
+      }
+    });
+
+    document.getElementById("btnCopyStudentFullReport")?.addEventListener("click", () => {
+      if (currentShareObj && currentShareObj.summaryText) {
+        navigator.clipboard.writeText(currentShareObj.summaryText).then(() => {
+          this.showToast("📋 Đã sao chép toàn bộ báo cáo gửi qua Zalo!");
+        }).catch(() => {
+          shareTextarea.select();
+          document.execCommand("copy");
+          this.showToast("📋 Đã sao chép báo cáo!");
+        });
+      }
+    });
+
+    // Student detail modal close
+    document.getElementById("btnCloseStudentDetailModal")?.addEventListener("click", () => {
+      const detailModal = document.getElementById("teacherStudentDetailModal");
+      if (detailModal) detailModal.style.display = "none";
+    });
+  }
+
+  renderTeacherDashboard() {
+    const list = this.userManager.getAllStudentsOverview();
+    const searchVal = (document.getElementById("teacherSearchInput")?.value || "").trim().toLowerCase();
+    const targetFilter = document.getElementById("teacherFilterTarget")?.value || "all";
+
+    // Stats
+    const totalStudents = list.length;
+    const totalXP = list.reduce((acc, s) => acc + (s.xp || 0), 0);
+    const totalExams = list.reduce((acc, s) => acc + (s.examsCount || 0), 0);
+    const topStudent = [...list].sort((a, b) => (b.xp || 0) - (a.xp || 0))[0];
+
+    const statTotalEl = document.getElementById("teacherStatTotalStudents");
+    const statXpEl = document.getElementById("teacherStatTotalXP");
+    const statExamsEl = document.getElementById("teacherStatTotalExams");
+    const statTopEl = document.getElementById("teacherStatTopStudent");
+
+    if (statTotalEl) statTotalEl.textContent = totalStudents;
+    if (statXpEl) statXpEl.textContent = totalXP.toLocaleString() + " XP";
+    if (statExamsEl) statExamsEl.textContent = totalExams;
+    if (statTopEl) {
+      statTopEl.textContent = topStudent ? `${topStudent.avatar} ${topStudent.name} (${topStudent.xp} XP)` : "Chưa có";
+    }
+
+    // Filter
+    const filtered = list.filter(s => {
+      const matchName = s.name.toLowerCase().includes(searchVal);
+      const matchTarget = targetFilter === "all" || s.targetLevel === targetFilter;
+      return matchName && matchTarget;
+    });
+
+    const tbody = document.getElementById("teacherStudentsTableBody");
+    if (!tbody) return;
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 24px; color: var(--ink-muted);">Không tìm thấy học viên nào phù hợp</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = filtered.map((s, idx) => {
+      return `
+        <tr>
+          <td style="font-weight: 700; color: var(--ink-muted);">${idx + 1}</td>
+          <td>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 1.4rem;">${s.avatar}</span>
+              <div>
+                <strong style="color: var(--ink-base);">${s.name}</strong>
+                <div style="font-size: 0.72rem; color: var(--ink-muted);">ID: ${s.id.slice(-6)}</div>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div style="font-size: 0.8rem; font-weight: 600;">${s.targetLevelLabel}</div>
+            <div style="font-size: 0.72rem; color: var(--ink-muted);">${s.currentLevelLabel}</div>
+          </td>
+          <td>
+            <span class="teacher-student-badge">
+              📍 ${s.currentStageName.split(":")[0]} (${s.completedStages}/7)
+            </span>
+          </td>
+          <td>
+            <strong style="color: var(--gold);">${s.xp.toLocaleString()} XP</strong>
+          </td>
+          <td>
+            <span style="color: var(--primary); font-weight: 700;">🔥 ${s.streak} ngày</span>
+          </td>
+          <td>
+            <div style="font-weight: 700;">${s.latestExamScore}</div>
+            <div style="font-size: 0.72rem; color: var(--ink-muted);">${s.latestExamTitle || ""}</div>
+          </td>
+          <td style="font-size: 0.78rem; color: var(--ink-secondary);">
+            ${s.lastActiveDate}
+          </td>
+          <td style="text-align: center;">
+            <button type="button" class="btn btn-secondary btn-sm btn-teacher-view-detail" data-uid="${s.id}" style="padding: 4px 8px; font-size: 0.78rem;">
+              👁️ Chi Tiết
+            </button>
+          </td>
+        </tr>
+      `;
+    }).join("");
+
+    tbody.querySelectorAll(".btn-teacher-view-detail").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const uid = btn.getAttribute("data-uid");
+        this.openStudentDetailModal(uid);
+      });
+    });
+  }
+
+  openStudentDetailModal(uid) {
+    const user = this.userManager.users.find(u => u.id === uid);
+    if (!user) return;
+    const modal = document.getElementById("teacherStudentDetailModal");
+    if (!modal) return;
+
+    document.getElementById("detailStudentAvatar").textContent = user.avatar || "🐼";
+    document.getElementById("detailStudentName").textContent = user.name;
+    document.getElementById("detailStudentSub").textContent = `${LEVEL_LABELS[user.currentLevel] || user.currentLevel} ➔ ${TARGET_LABELS[user.targetLevel] || user.targetLevel}`;
+    document.getElementById("detailStudentXP").textContent = (user.xp || 0) + " XP";
+    document.getElementById("detailStudentStreak").textContent = (user.streak || 1) + " Ngày";
+    document.getElementById("detailStudentCreated").textContent = user.createdAt || "--";
+
+    // 7 Stages Roadmap
+    const roadmapListEl = document.getElementById("detailStudentRoadmapList");
+    if (roadmapListEl) {
+      const roadmap = user.roadmap || {};
+      const stages = [
+        { k: "stage1", n: "Chặng 1: Nhập Môn Pinyin & 214 Bộ Thủ" },
+        { k: "stage2", n: "Chặng 2: Nền Tảng HSK 2 & Giao Tiếp Đời Sống" },
+        { k: "stage3", n: "Chặng 3: Trung Cấp HSK 3 & Liên Từ Ghép Câu" },
+        { k: "stage4", n: "Chặng 4: Nâng Cao HSK 4 & Ngữ Pháp Chuyên Sâu" },
+        { k: "stage5", n: "Chặng 5: Báo Chí HSK 5 & Văn Phong Trang Trọng" },
+        { k: "stage6", n: "Chặng 6: Thành Thạo HSK 6 & Biên Phiên Dịch" },
+        { k: "stage7", n: "Chặng 7: Học Thuật & Luận Văn Chuyên Ngành (IMRaD)" }
+      ];
+
+      roadmapListEl.innerHTML = stages.map(st => {
+        const data = roadmap[st.k];
+        let statusTag = `<span style="color: var(--ink-muted);">🔒 Khóa</span>`;
+        if (data && data.passedTest) {
+          statusTag = `<span style="color: var(--secondary); font-weight: 700;">✅ Hoàn Thành</span>`;
+        } else if (data && data.unlocked) {
+          statusTag = `<span style="color: var(--gold-dark); font-weight: 700;">📖 Đang Học</span>`;
+        }
+        return `
+          <div style="display: flex; justify-content: space-between; align-items: center; background: var(--surface-alt); padding: 8px 12px; border-radius: var(--radius-sm); font-size: 0.82rem;">
+            <span>${st.n}</span>
+            <span>${statusTag}</span>
+          </div>
+        `;
+      }).join("");
+    }
+
+    // Exam History
+    const examListEl = document.getElementById("detailStudentExamList");
+    if (examListEl) {
+      const exams = user.examHistory || [];
+      if (exams.length === 0) {
+        examListEl.innerHTML = `<div style="font-size: 0.82rem; color: var(--ink-muted); font-style: italic;">Học viên chưa làm bài kiểm tra nào.</div>`;
+      } else {
+        examListEl.innerHTML = exams.map(ex => {
+          return `
+            <div style="display: flex; justify-content: space-between; padding: 8px 12px; border-bottom: 1px solid var(--border); font-size: 0.82rem;">
+              <div>
+                <strong>${ex.examTitle}</strong>
+                <div style="font-size: 0.72rem; color: var(--ink-muted);">${ex.date}</div>
+              </div>
+              <div style="text-align: right;">
+                <span style="font-weight: 800; color: ${ex.passed ? 'var(--secondary)' : 'var(--primary)'};">${ex.score}/${ex.total}</span>
+                <div style="font-size: 0.72rem;">${ex.passed ? 'Đạt' : 'Chưa đạt'}</div>
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+    }
+
+    // Activity Logs
+    const logsEl = document.getElementById("detailStudentLogsList");
+    if (logsEl) {
+      const logs = (user.activityLogs || []).slice(-10).reverse();
+      if (logs.length === 0) {
+        logsEl.innerHTML = `<div>Chưa có nhật ký hoạt động.</div>`;
+      } else {
+        logsEl.innerHTML = logs.map(l => {
+          return `
+            <div style="display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px dashed var(--border);">
+              <span>${l.action}</span>
+              <span style="color: var(--ink-muted); font-size: 0.75rem;">${l.timestamp}</span>
+            </div>
+          `;
+        }).join("");
+      }
+    }
+
+    modal.style.display = "flex";
   }
 }
 

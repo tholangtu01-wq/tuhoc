@@ -5,6 +5,17 @@
 
 const USERS_STORAGE_KEY = "tiengtrungdema_users_v3";
 const CURRENT_USER_ID_KEY = "tiengtrungdema_current_user_id_v3";
+const ADMIN_SETTINGS_KEY = "tiengtrungdema_admin_settings_v1";
+
+const encodeUtf8Base64 = (str) => {
+  if (typeof Buffer !== "undefined") return Buffer.from(str, "utf8").toString("base64");
+  return btoa(unescape(encodeURIComponent(str)));
+};
+
+const decodeUtf8Base64 = (b64) => {
+  if (typeof Buffer !== "undefined") return Buffer.from(b64, "base64").toString("utf8");
+  return decodeURIComponent(escape(atob(b64)));
+};
 
 export const LEVEL_LABELS = {
   level_0: "1. Mới bắt đầu (Từ con số 0 / Chưa biết gì)",
@@ -23,17 +34,17 @@ export const LEVEL_LABELS = {
 };
 
 export const TARGET_LABELS = {
-  target_hsk1: "HSK 1 — Nhập môn phát âm & 150 từ vựng",
-  target_hsk2: "HSK 2 — Giao tiếp căn bản hàng ngày",
-  target_hsk3: "HSK 3 — Tự tin sinh hoạt đời sống & du lịch",
-  target_hsk4: "HSK 4 — Giao tiếp nâng cao & phỏng vấn xin việc",
-  target_hsk5: "HSK 5 — Đọc báo chí & làm việc chuyên nghiệp",
-  target_hsk6: "HSK 6 — Cao cấp, thành ngữ & dịch thuật lưu loát",
-  target_academic: "Học thuật & Luận văn Chuyên ngành (IMRaD)",
-  academic: "Học thuật & Luận văn Chuyên ngành (IMRaD)",
-  "hsk1-2": "HSK 1 - 2 (Căn bản)",
-  "hsk3-4": "HSK 3 - 4 (Trung cấp)",
-  "hsk5-6": "HSK 5 - 6 (Cao cấp)"
+  target_hsk1: "1. Mục tiêu HSK 1 — Nhập môn phát âm & 150 từ vựng",
+  target_hsk2: "2. Mục tiêu HSK 2 — Giao tiếp căn bản thường nhật (~300 từ)",
+  target_hsk3: "3. Mục tiêu HSK 3 — Tự tin sinh hoạt đời sống & Du lịch (~600 từ)",
+  target_hsk4: "4. Mục tiêu HSK 4 — Giao tiếp nâng cao & Phỏng vấn xin việc (~1.200 từ)",
+  target_hsk5: "5. Mục tiêu HSK 5 — Đọc báo chí & Làm việc chuyên môn (~2.500 từ)",
+  target_hsk6: "6. Mục tiêu HSK 6 — Thành thạo lưu loát, thành ngữ & Biên dịch (~5.000 từ)",
+  target_academic: "7. Mục tiêu Học thuật — Nghiên cứu & Luận văn Chuyên ngành (IMRaD)",
+  academic: "7. Mục tiêu Học thuật — Nghiên cứu & Luận văn Chuyên ngành (IMRaD)",
+  "hsk1-2": "2. Mục tiêu HSK 2 (Giao tiếp thường nhật)",
+  "hsk3-4": "4. Mục tiêu HSK 4 (Nâng cao)",
+  "hsk5-6": "6. Mục tiêu HSK 6 (Cao cấp)"
 };
 
 export class UserManager {
@@ -43,7 +54,7 @@ export class UserManager {
     
     // Nếu chưa có người dùng nào, tạo sẵn học viên mặc định
     if (this.users.length === 0) {
-      const defUser = this.createDefaultUser("Học Viên", "level_0", "target_academic", "👨‍🎓");
+      const defUser = this.createDefaultUser("Học Viên", "level_0", "target_hsk2", "🐼");
       this.users = [defUser];
       this.currentUser = defUser;
       this.currentUserId = defUser.id;
@@ -51,12 +62,17 @@ export class UserManager {
       this.saveCurrentUserId();
     } else {
       this.currentUser = this.users.find(u => u.id === this.currentUserId) || this.users[0];
+      const VALID_AVATARS = ["🐼", "🐉", "🏮", "🀄", "📜", "🥟", "🍵", "🏯"];
+      if (this.currentUser && (!this.currentUser.avatar || !VALID_AVATARS.includes(this.currentUser.avatar))) {
+        this.currentUser.avatar = "🐼";
+      }
       this.currentUserId = this.currentUser ? this.currentUser.id : "";
+      this.saveUsers();
       this.saveCurrentUserId();
     }
   }
 
-  createDefaultUser(name = "Học Viên", currentLevel = "level_0", targetLevel = "target_academic", avatar = "👨‍🎓") {
+  createDefaultUser(name = "Học Viên", currentLevel = "level_0", targetLevel = "target_hsk2", avatar = "🐼") {
     const today = new Date().toISOString().slice(0, 10);
     const nowStr = new Date().toLocaleString("vi-VN");
 
@@ -169,9 +185,9 @@ export class UserManager {
       id: "user_" + Date.now() + "_" + Math.random().toString(36).substring(2, 6),
       name: (name || "Học Viên").trim(),
       currentLevel: currentLevel || "level_0",
-      targetLevel: targetLevel || "target_academic",
-      target: targetLevel || "target_academic",
-      avatar: avatar || "👨‍🎓",
+      targetLevel: targetLevel || "target_hsk2",
+      target: targetLevel || "target_hsk2",
+      avatar: avatar || "🐼",
       createdAt: nowStr,
       xp: 50,
       streak: 1,
@@ -193,7 +209,14 @@ export class UserManager {
   loadUsers() {
     try {
       const data = localStorage.getItem(USERS_STORAGE_KEY) || localStorage.getItem("hanzii_users_v2");
-      return data ? JSON.parse(data) : [];
+      const users = data ? JSON.parse(data) : [];
+      const VALID_AVATARS = ["🐼", "🐉", "🏮", "🀄", "📜", "🥟", "🍵", "🏯"];
+      users.forEach(u => {
+        if (!u.avatar || !VALID_AVATARS.includes(u.avatar) || u.avatar.includes("\uFFFD")) {
+          u.avatar = "🐼";
+        }
+      });
+      return users;
     } catch (e) {
       console.warn("Lỗi khi tải danh sách người dùng:", e);
       return [];
@@ -222,19 +245,19 @@ export class UserManager {
    * Tạo một hồ sơ người học mới với lộ trình cá nhân hóa
    * Hỗ trợ cả hai cú pháp: (name, currentLevel, targetLevel, avatar) hoặc (name, targetLevel, avatar)
    */
-  createUser(name, currentLevelOrTarget = "level_0", targetLevel = "target_academic", avatar = "👨‍🎓") {
+  createUser(name, currentLevelOrTarget = "level_0", targetLevel = "target_hsk2", avatar = "🐼") {
     const trimmedName = (name || "Học Viên").trim();
     let curLevel = "level_0";
-    let tgtLevel = "target_academic";
+    let tgtLevel = "target_hsk2";
     let avt = avatar;
 
     if (typeof currentLevelOrTarget === "string" && currentLevelOrTarget.startsWith("level_")) {
       curLevel = currentLevelOrTarget;
-      tgtLevel = targetLevel || "target_academic";
-      avt = avatar || "👨‍🎓";
+      tgtLevel = targetLevel || "target_hsk2";
+      avt = avatar || "🐼";
     } else {
-      tgtLevel = currentLevelOrTarget || "target_academic";
-      avt = (typeof targetLevel === "string" && targetLevel.length <= 4) ? targetLevel : "👨‍🎓";
+      tgtLevel = currentLevelOrTarget || "target_hsk2";
+      avt = (typeof targetLevel === "string" && targetLevel.length <= 4) ? targetLevel : "🐼";
     }
 
     // Nếu hồ sơ duy nhất hiện tại là "Học Viên" mặc định, cập nhật trực tiếp
@@ -252,6 +275,7 @@ export class UserManager {
     this.users.push(newUser);
     this.saveUsers();
     this.switchUser(newUser.id);
+    this.syncStudentToCloud(newUser);
     return newUser;
   }
 
@@ -324,6 +348,7 @@ export class UserManager {
 
     this.checkRoadmapProgression();
     this.saveUsers();
+    this.syncStudentToCloud(this.currentUser);
   }
 
   checkRoadmapProgression() {
@@ -476,5 +501,315 @@ export class UserManager {
       nextLevelXP,
       progressPercent
     };
+  }
+
+  /**
+   * Lấy thông tin Mục Tiêu Học Tập Hôm Nay (Tự động reset mỗi ngày mới)
+   */
+  getDailyGoal() {
+    if (!this.currentUser) return null;
+    const today = new Date().toISOString().slice(0, 10);
+    if (!this.currentUser.dailyGoal || this.currentUser.dailyGoal.date !== today) {
+      this.currentUser.dailyGoal = {
+        date: today,
+        flashcard: 0,
+        flashcardTarget: 5,
+        writing: 0,
+        writingTarget: 2,
+        speech: 0,
+        speechTarget: 3,
+        rewardClaimed: false
+      };
+      this.saveUsers();
+    }
+    return this.currentUser.dailyGoal;
+  }
+
+  /**
+   * Cập nhật tiến độ Mục Tiêu Học Tập Hôm Nay & Thưởng +50 XP khi hoàn thành
+   */
+  recordDailyProgress(type, amount = 1) {
+    const goal = this.getDailyGoal();
+    if (!goal) return null;
+    if (goal[type] !== undefined) {
+      goal[type] += amount;
+    }
+    const isCompleted = (goal.flashcard >= goal.flashcardTarget) &&
+                        (goal.writing >= goal.writingTarget) &&
+                        (goal.speech >= goal.speechTarget);
+    let rewardGranted = false;
+    if (isCompleted && !goal.rewardClaimed) {
+      goal.rewardClaimed = true;
+      this.addXP(50, "🎯 Hoàn thành xuất sắc Mục Tiêu Học Tập Hôm Nay!");
+      rewardGranted = true;
+    }
+    this.saveUsers();
+    return { goal, isCompleted, rewardGranted };
+  }
+
+  // ========================== CỔNG QUẢN TRỊ & THEO DÕI GIÁO VIÊN ==========================
+
+  getAdminSettings() {
+    try {
+      const data = localStorage.getItem(ADMIN_SETTINGS_KEY);
+      if (data) {
+        const parsed = JSON.parse(data);
+        return {
+          pin: parsed.pin || "8888",
+          webhookUrl: parsed.webhookUrl || ""
+        };
+      }
+    } catch (e) {
+      console.warn("Lỗi khi tải cài đặt giáo viên:", e);
+    }
+    return { pin: "8888", webhookUrl: "" };
+  }
+
+  saveAdminSettings(settings) {
+    try {
+      const current = this.getAdminSettings();
+      const updated = { ...current, ...settings };
+      localStorage.setItem(ADMIN_SETTINGS_KEY, JSON.stringify(updated));
+      return updated;
+    } catch (e) {
+      console.error("Lỗi khi lưu cài đặt giáo viên:", e);
+      return null;
+    }
+  }
+
+  verifyAdminPin(pin) {
+    const settings = this.getAdminSettings();
+    return String(pin || "").trim() === String(settings.pin).trim();
+  }
+
+  changeAdminPin(oldPin, newPin) {
+    if (!this.verifyAdminPin(oldPin)) {
+      return { success: false, message: "Mã PIN cũ không chính xác!" };
+    }
+    const cleaned = String(newPin || "").trim();
+    if (cleaned.length < 4) {
+      return { success: false, message: "Mã PIN mới phải có ít nhất 4 ký tự!" };
+    }
+    this.saveAdminSettings({ pin: cleaned });
+    return { success: true, message: "Đã cập nhật mã PIN Giáo Viên thành công!" };
+  }
+
+  setCloudSyncWebhook(url) {
+    const cleaned = String(url || "").trim();
+    this.saveAdminSettings({ webhookUrl: cleaned });
+    return cleaned;
+  }
+
+  getCloudSyncWebhook() {
+    return this.getAdminSettings().webhookUrl;
+  }
+
+  getAllStudentsOverview() {
+    return this.users.map(u => {
+      const roadmap = u.roadmap || {};
+      const stages = Object.keys(roadmap);
+      const completedStages = stages.filter(k => roadmap[k].passedTest || roadmap[k].completedLesson).length;
+      let currentStageName = "Chặng 1: Nhập Môn";
+      for (const k of stages) {
+        if (roadmap[k].unlocked) currentStageName = roadmap[k].name;
+      }
+      const latestExam = (u.examHistory && u.examHistory.length > 0)
+        ? u.examHistory[u.examHistory.length - 1]
+        : null;
+      return {
+        id: u.id,
+        name: u.name,
+        avatar: u.avatar || "🐼",
+        currentLevel: u.currentLevel,
+        currentLevelLabel: LEVEL_LABELS[u.currentLevel] || u.currentLevel,
+        targetLevel: u.targetLevel,
+        targetLevelLabel: TARGET_LABELS[u.targetLevel] || u.targetLevel,
+        xp: u.xp || 0,
+        streak: u.streak || 1,
+        createdAt: u.createdAt || "N/A",
+        lastActiveDate: u.lastActiveDate || u.createdAt || "N/A",
+        completedStages,
+        totalStages: 7,
+        currentStageName,
+        examsCount: u.examHistory ? u.examHistory.length : 0,
+        latestExamScore: latestExam ? `${latestExam.score}/${latestExam.total}` : "Chưa thi",
+        latestExamTitle: latestExam ? latestExam.examTitle : "",
+        latestExamDate: latestExam ? latestExam.date : "",
+        srsCount: u.srsCards ? Object.keys(u.srsCards).length : 0,
+        notebookCount: u.notebook ? u.notebook.length : 0,
+        activityLogs: u.activityLogs || []
+      };
+    });
+  }
+
+  exportStudentsToCSV() {
+    const students = this.getAllStudentsOverview();
+    const headers = [
+      "Họ và Tên",
+      "Avatar",
+      "Trình Độ Ban Đầu",
+      "Mục Tiêu",
+      "Điểm XP",
+      "Chuỗi Ngày (Streak)",
+      "Chặng Đang Học",
+      "Số Chặng Đã Xong",
+      "Số Đề Thi Đã Nộp",
+      "Điểm Thi Gần Nhất",
+      "Ngày Học Gần Nhất",
+      "Ngày Đăng Ký"
+    ];
+    
+    const escapeCsv = (val) => {
+      const s = String(val === undefined || val === null ? "" : val);
+      if (s.includes(",") || s.includes('"') || s.includes("\n")) {
+        return `"${s.replace(/"/g, '""')}"`;
+      }
+      return s;
+    };
+
+    const rows = students.map(s => [
+      escapeCsv(s.name),
+      escapeCsv(s.avatar),
+      escapeCsv(s.currentLevelLabel),
+      escapeCsv(s.targetLevelLabel),
+      escapeCsv(s.xp),
+      escapeCsv(s.streak),
+      escapeCsv(s.currentStageName),
+      escapeCsv(`${s.completedStages}/${s.totalStages}`),
+      escapeCsv(s.examsCount),
+      escapeCsv(s.latestExamScore),
+      escapeCsv(s.lastActiveDate),
+      escapeCsv(s.createdAt)
+    ].join(","));
+
+    return "\uFEFF" + [headers.join(","), ...rows].join("\r\n");
+  }
+
+  generateStudentProgressCode(userId = null) {
+    const user = userId ? this.users.find(u => u.id === userId) : this.currentUser;
+    if (!user) return null;
+
+    const payload = {
+      app: "tiengtrungdema",
+      type: "student_progress_sync",
+      v: "3.3",
+      timestamp: new Date().toISOString(),
+      student: {
+        id: user.id,
+        name: user.name,
+        avatar: user.avatar,
+        currentLevel: user.currentLevel,
+        targetLevel: user.targetLevel,
+        xp: user.xp,
+        streak: user.streak,
+        createdAt: user.createdAt,
+        lastActiveDate: user.lastActiveDate,
+        roadmap: user.roadmap,
+        examHistory: user.examHistory || [],
+        activityLogs: (user.activityLogs || []).slice(-15)
+      }
+    };
+
+    const base64Str = encodeUtf8Base64(JSON.stringify(payload));
+    const latestExam = (user.examHistory && user.examHistory.length > 0)
+      ? user.examHistory[user.examHistory.length - 1]
+      : null;
+
+    const summaryText = 
+`🎓 [TIENGTRUNGDEMA - BÁO CÁO TIẾN ĐỘ HỌC TẬP]
+👤 Học viên: ${user.name} (${user.avatar})
+🎯 Trình độ: ${LEVEL_LABELS[user.currentLevel] || user.currentLevel}
+🚀 Mục tiêu: ${TARGET_LABELS[user.targetLevel] || user.targetLevel}
+⚡ Điểm XP: ${user.xp} XP | 🔥 Chuỗi ngày: ${user.streak} ngày
+📝 Bài thi gần nhất: ${latestExam ? `${latestExam.score}/${latestExam.total} (${latestExam.examTitle})` : "Chưa thi"}
+📅 Cập nhật: ${new Date().toLocaleString("vi-VN")}
+--------------------------------------
+🔑 Mã đồng bộ cho Giáo Viên:
+TTDM-SYNC-${base64Str}`;
+
+    return {
+      code: `TTDM-SYNC-${base64Str}`,
+      summaryText,
+      payload
+    };
+  }
+
+  importStudentProgressCode(rawCode) {
+    try {
+      if (!rawCode || typeof rawCode !== "string") {
+        return { success: false, message: "Mã tiến độ không hợp lệ hoặc đang để trống!" };
+      }
+      let cleaned = rawCode.trim();
+      if (cleaned.includes("TTDM-SYNC-")) {
+        const parts = cleaned.split("TTDM-SYNC-");
+        cleaned = parts[parts.length - 1].trim().split(/\s+/)[0];
+      }
+      const jsonStr = decodeUtf8Base64(cleaned);
+      const data = JSON.parse(jsonStr);
+
+      if (data.app !== "tiengtrungdema" || !data.student || !data.student.name) {
+        return { success: false, message: "Dữ liệu mã không đúng cấu trúc tiengtrungdema!" };
+      }
+
+      const s = data.student;
+      const existingIndex = this.users.findIndex(u => u.id === s.id || (u.name.toLowerCase() === s.name.toLowerCase() && u.avatar === s.avatar));
+
+      if (existingIndex >= 0) {
+        const current = this.users[existingIndex];
+        this.users[existingIndex] = {
+          ...current,
+          ...s,
+          xp: Math.max(current.xp || 0, s.xp || 0),
+          streak: Math.max(current.streak || 1, s.streak || 1),
+          lastActiveDate: s.lastActiveDate || current.lastActiveDate,
+          roadmap: { ...(current.roadmap || {}), ...(s.roadmap || {}) },
+          examHistory: s.examHistory && s.examHistory.length > 0 ? s.examHistory : (current.examHistory || [])
+        };
+      } else {
+        this.users.push(s);
+      }
+
+      this.saveUsers();
+      return { success: true, studentName: s.name, isUpdate: existingIndex >= 0 };
+    } catch (e) {
+      console.error("Lỗi khi nhập mã tiến độ:", e);
+      return { success: false, message: "Mã tiến độ bị lỗi hoặc không giải mã được: " + e.message };
+    }
+  }
+
+  syncStudentToCloud(user = null) {
+    const targetUser = user || this.currentUser;
+    if (!targetUser) return;
+    const webhookUrl = this.getCloudSyncWebhook();
+    if (!webhookUrl || !webhookUrl.startsWith("http")) return;
+
+    try {
+      const payload = {
+        action: "student_progress_ping",
+        timestamp: new Date().toLocaleString("vi-VN"),
+        id: targetUser.id,
+        name: targetUser.name,
+        avatar: targetUser.avatar,
+        currentLevel: LEVEL_LABELS[targetUser.currentLevel] || targetUser.currentLevel,
+        targetLevel: TARGET_LABELS[targetUser.targetLevel] || targetUser.targetLevel,
+        xp: targetUser.xp,
+        streak: targetUser.streak,
+        lastActiveDate: targetUser.lastActiveDate,
+        latestExam: (targetUser.examHistory && targetUser.examHistory.length > 0)
+          ? targetUser.examHistory[targetUser.examHistory.length - 1]
+          : null
+      };
+
+      if (typeof fetch !== "undefined") {
+        fetch(webhookUrl, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        }).catch(() => {});
+      }
+    } catch (e) {
+      // Non-blocking background
+    }
   }
 }
